@@ -35,10 +35,15 @@ router.post('/api/vinyl', authenticateToken, (req, res) => {
     try {
         const result = db.prepare(
             'INSERT INTO vinyls (artist_name, title, identifier, notes, dupe, weight) VALUES (?, ?, ?, ?, ?, ?)'
-        ).run(artist_name, title, identifier, notes, dupe || false, weight || null);
+        ).run(artist_name, title, identifier, notes, dupe ? 1 : 0, weight);
         
         res.status(201).json({ id: result.lastInsertRowid });
     } catch (error) {
+        console.error('Detailed error:', {
+            message: error.message,
+            stack: error.stack,
+            body: req.body
+        });
         res.status(500).json({ error: 'Failed to add vinyl record' });
     }
 });
@@ -50,13 +55,19 @@ router.put('/api/vinyl/:id', authenticateToken, (req, res) => {
     try {
         const result = db.prepare(
             'UPDATE vinyls SET artist_name = ?, title = ?, identifier = ?, notes = ?, dupe = ?, weight = ? WHERE id = ?'
-        ).run(artist_name, title, identifier, notes, dupe, weight, req.params.id);
+        ).run(artist_name, title, identifier, notes, dupe ? 1 : 0, weight, req.params.id);
         
         if (result.changes === 0) {
             return res.status(404).json({ error: 'Vinyl record not found' });
         }
         res.json({ message: 'Record updated successfully' });
     } catch (error) {
+        console.error('Detailed error:', {
+            message: error.message,
+            stack: error.stack,
+            body: req.body,
+            params: req.params
+        });
         res.status(500).json({ error: 'Failed to update vinyl record' });
     }
 });
