@@ -54,12 +54,38 @@ logoutBtn.addEventListener('click', () => {
     location.reload();
 });
 
+// Add at the top with other state variables
+let currentSort = { field: 'artist_name', ascending: true };
+
+// Add vinylCollection state variable at the top
+let vinylCollection = [];
+
+// Add sorting function
+function sortVinyls(field) {
+    if (currentSort.field === field) {
+        currentSort.ascending = !currentSort.ascending;
+    } else {
+        currentSort.field = field;
+        currentSort.ascending = true;
+    }
+
+    const sortedVinyls = [...vinylCollection].sort((a, b) => {
+        const aVal = a[field] || '';
+        const bVal = b[field] || '';
+        return currentSort.ascending ? 
+            String(aVal).localeCompare(String(bVal)) : 
+            String(bVal).localeCompare(String(aVal));
+    });
+
+    displayVinyls(sortedVinyls);
+}
+
 // Fetch and display vinyl records
 async function fetchVinyls() {
     try {
         const response = await fetch('/api/vinyl');
-        const vinyls = await response.json();
-        displayVinyls(vinyls);
+        vinylCollection = await response.json();
+        displayVinyls(vinylCollection);
     } catch (error) {
         console.error('Error fetching vinyls:', error);
     }
@@ -76,6 +102,8 @@ function displayVinyls(vinyls) {
             <td>${escapeHtml(vinyl.title)}</td>
             <td>${escapeHtml(vinyl.identifier || '')}</td>
             <td>${vinyl.weight || ''}</td>
+            <td>${escapeHtml(vinyl.notes || '')}</td>
+            <td>${vinyl.dupe ? '<span class="dupe-badge">Yes</span>' : ''}</td>
             <td>
                 <button onclick="editVinyl(${vinyl.id})" class="action-btn">Edit</button>
                 <button onclick="deleteVinyl(${vinyl.id})" class="action-btn delete-btn">Delete</button>

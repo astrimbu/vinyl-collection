@@ -136,4 +136,28 @@ button:hover {
     padding: 2px 6px;
     border-radius: 4px;
     font-size: 12px;
+    display: inline-block;
+}
+
+/* Add these new styles */
+th[onclick] {
+    position: relative;
+}
+
+th[onclick]:hover {
+    background-color: #eee;
+}
+
+th[onclick]::after {
+    content: '↕';
+    position: absolute;
+    right: 8px;
+    opacity: 0.3;
+}
+
+.notes-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
