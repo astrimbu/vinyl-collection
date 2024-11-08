@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinyl Collection - Admin</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Vinyl Collection Admin</h1>
+        <nav>
+            <a href="/" class="nav-link">View Collection</a>
+            <button id="logoutBtn" class="hidden">Logout</button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- This section will be dynamically populated with either init or login form -->
+        <section id="authSection">
+            <!-- Forms will be inserted here by JavaScript -->
+        </section>
+
+        <section id="adminPanel" class="hidden">
+            <form id="vinylForm">
+                <h2>Add New Vinyl</h2>
+                <div class="form-group">
+                    <label for="artist_name">Artist Name:</label>
+                    <input type="text" id="artist_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="identifier">Identifier:</label>
+                    <input type="text" id="identifier">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (g):</label>
+                    <input type="number" id="weight">
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="dupe">
+                        Duplicate Copy
+                    </label>
+                </div>
+                <button type="submit">Add Record</button>
+            </form>
+
+            <div class="vinyl-management">
+                <h2>Manage Collection</h2>
+                <table id="adminVinylTable">
+                    <thead>
+                        <tr>
+                            <th>Artist</th>
+                            <th>Title</th>
+                            <th>ID</th>
+                            <th>Weight</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminVinylTableBody">
+                        <!-- Data will be populated via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
