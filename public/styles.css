@@ -129,3 +129,11 @@ button:hover {
 .vinyl-management {
     margin-top: 40px;
 }
+
+.dupe-badge {
+    background-color: #ff9800;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}

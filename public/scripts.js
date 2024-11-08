@@ -4,6 +4,7 @@ const vinylTableBody = document.getElementById('vinylTableBody');
 
 // State
 let vinylCollection = [];
+let currentSort = { field: 'artist_name', ascending: true };
 
 // Fetch vinyls
 async function fetchVinyls() {
@@ -29,6 +30,7 @@ function displayVinyls(vinyls) {
             <td>${escapeHtml(vinyl.identifier || '')}</td>
             <td>${vinyl.weight || ''}</td>
             <td>${escapeHtml(vinyl.notes || '')}</td>
+            ${vinyl.dupe ? '<td><span class="dupe-badge">Duplicate</span></td>' : '<td></td>'}
         `;
         vinylTableBody.appendChild(row);
     });
@@ -43,6 +45,26 @@ searchInput.addEventListener('input', (e) => {
     );
     displayVinyls(filteredVinyls);
 });
+
+// Sorting functionality
+function sortVinyls(field) {
+    if (currentSort.field === field) {
+        currentSort.ascending = !currentSort.ascending;
+    } else {
+        currentSort.field = field;
+        currentSort.ascending = true;
+    }
+
+    const sortedVinyls = [...vinylCollection].sort((a, b) => {
+        const aVal = a[field] || '';
+        const bVal = b[field] || '';
+        return currentSort.ascending ? 
+            String(aVal).localeCompare(String(bVal)) : 
+            String(bVal).localeCompare(String(aVal));
+    });
+
+    displayVinyls(sortedVinyls);
+}
 
 // Utility function to prevent XSS
 function escapeHtml(str) {
