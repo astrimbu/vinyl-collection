@@ -1,8 +1,8 @@
 # Vinyl Collection Manager
 
-A simple web application for managing a vinyl record collection. Features include sorting, searching, and admin functionality for managing the collection.
+A simple web application for managing a vinyl record collection.  
 
-(Live preview coming soon)
+(Live preview coming soon)  
 
 ![preview](./preview.png)
 
