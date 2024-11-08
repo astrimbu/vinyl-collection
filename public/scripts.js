@@ -41,7 +41,9 @@ searchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const filteredVinyls = vinylCollection.filter(vinyl => 
         vinyl.artist_name.toLowerCase().includes(searchTerm) ||
-        vinyl.title.toLowerCase().includes(searchTerm)
+        vinyl.title.toLowerCase().includes(searchTerm) ||
+        (vinyl.notes && vinyl.notes.toLowerCase().includes(searchTerm)) ||
+        (vinyl.identifier && vinyl.identifier.toLowerCase().includes(searchTerm))
     );
     displayVinyls(filteredVinyls);
 });

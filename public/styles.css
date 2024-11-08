@@ -27,14 +27,21 @@ header {
 
 .search-section {
     margin-bottom: 20px;
+    width: 100%;
 }
 
-#searchInput {
+.search-section input {
     width: 100%;
     padding: 8px;
     font-size: 16px;
     border: 1px solid #ddd;
     border-radius: 4px;
+}
+
+.search-section input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 3px rgba(76, 175, 80, 0.3);
 }
 
 table {
@@ -128,6 +135,8 @@ button:hover {
 
 .vinyl-management {
     margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
 }
 
 .dupe-badge {

@@ -4,6 +4,7 @@ const adminPanel = document.getElementById('adminPanel');
 const logoutBtn = document.getElementById('logoutBtn');
 const vinylForm = document.getElementById('vinylForm');
 const adminVinylTableBody = document.getElementById('adminVinylTableBody');
+const adminSearchInput = document.getElementById('adminSearchInput');
 
 // Check if user is already logged in
 function checkAuthStatus() {
@@ -266,4 +267,16 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         checkAdminExists();
     }
+});
+
+// Add search event listener
+adminSearchInput.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredVinyls = vinylCollection.filter(vinyl => 
+        vinyl.artist_name.toLowerCase().includes(searchTerm) ||
+        vinyl.title.toLowerCase().includes(searchTerm) ||
+        (vinyl.notes && vinyl.notes.toLowerCase().includes(searchTerm)) ||
+        (vinyl.identifier && vinyl.identifier.toLowerCase().includes(searchTerm))
+    );
+    displayVinyls(filteredVinyls);
 });
