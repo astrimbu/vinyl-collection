@@ -358,3 +358,49 @@ td {
     color: white;
     border: none;
 }
+
+.auth-switch {
+    margin-top: 20px;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.auth-switch a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+#registrationForm, #loginForm {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    background: var(--bg-form);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#registrationForm h2, #loginForm h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.form-group small {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.8em;
+    margin-top: 4px;
+}
+
+input[type="email"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    background: var(--input-bg);
+}

@@ -19,33 +19,6 @@ function checkAuthStatus() {
     }
 }
 
-// Login handling
-async function handleLogin(e) {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
-        });
-
-        if (response.ok) {
-            const { token } = await response.json();
-            sessionStorage.setItem('adminToken', token);
-            showAdminPanel();
-            fetchVinyls();
-        } else {
-            alert('Login failed. Please check your credentials.');
-        }
-    } catch (error) {
-        console.error('Login error:', error);
-        alert('Login failed. Please try again.');
-    }
-}
-
 // Show admin panel after successful login
 function showAdminPanel() {
     authSection.classList.add('hidden');
@@ -79,20 +52,36 @@ function sortVinyls(field) {
     displayVinyls(sortedVinyls);
 }
 
-// Fetch and display vinyl records
+// Fetch vinyls with authentication
 async function fetchVinyls() {
     try {
-        const response = await fetch('/api/vinyl');
-        vinylCollection = await response.json();
-        displayVinyls(vinylCollection);
+        const token = sessionStorage.getItem('adminToken');
+        const response = await fetch('/api/vinyl', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch vinyls');
+        }
+        
+        const data = await response.json();
+        displayVinyls(data);
     } catch (error) {
         console.error('Error fetching vinyls:', error);
     }
 }
 
-// Display vinyl records with edit/delete buttons
+// Display vinyls in admin table
 function displayVinyls(vinyls) {
+    const adminVinylTableBody = document.getElementById('adminVinylTableBody');
     adminVinylTableBody.innerHTML = '';
+    
+    if (!Array.isArray(vinyls)) {
+        console.error('Expected array of vinyls, got:', vinyls);
+        return;
+    }
     
     vinyls.forEach(vinyl => {
         const row = document.createElement('tr');
@@ -102,45 +91,42 @@ function displayVinyls(vinyls) {
             <td>${escapeHtml(vinyl.identifier || '')}</td>
             <td>${vinyl.weight || ''}</td>
             <td>${escapeHtml(vinyl.notes || '')}</td>
-            <td>${vinyl.dupe ? '<span class="dupe-badge">Yes</span>' : ''}</td>
+            <td>${vinyl.dupe ? '<span class="dupe-badge">Duplicate</span>' : ''}</td>
             <td>
-                <button onclick="editVinyl(${vinyl.id})" class="action-btn">Edit</button>
-                <button onclick="deleteVinyl(${vinyl.id})" class="action-btn delete-btn">Delete</button>
+                <button onclick="editVinyl(${vinyl.id})" class="edit-btn">Edit</button>
+                <button onclick="deleteVinyl(${vinyl.id})" class="delete-btn">Delete</button>
             </td>
         `;
         adminVinylTableBody.appendChild(row);
     });
 }
 
-// Add new vinyl record
+// Add vinyl with authentication
 async function handleAddVinyl(e) {
     e.preventDefault();
-    const formData = {
+    
+    const vinylData = {
         artist_name: document.getElementById('artist_name').value,
         title: document.getElementById('title').value,
         identifier: document.getElementById('identifier').value,
-        weight: document.getElementById('weight').value ? parseInt(document.getElementById('weight').value) : null,
+        weight: document.getElementById('weight').value,
         notes: document.getElementById('notes').value,
         dupe: document.getElementById('dupe').checked
     };
 
-    console.log('Submitting form data:', formData); // Debug log
-
     try {
+        const token = sessionStorage.getItem('adminToken');
         const response = await fetch('/api/vinyl', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`
+                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(vinylData)
         });
 
-        const responseData = await response.json();
-        console.log('Server response:', responseData); // Debug log
-
         if (!response.ok) {
-            throw new Error(responseData.message || 'Failed to add vinyl record');
+            throw new Error('Failed to add vinyl record');
         }
 
         // Reset form and refresh display
@@ -340,7 +326,7 @@ function showInitForm() {
 function showLoginForm() {
     authSection.innerHTML = `
         <form id="loginForm">
-            <h2>Admin Login</h2>
+            <h2>Login</h2>
             <div class="form-group">
                 <label for="username">Username:</label>
                 <input type="text" id="username" required>
@@ -350,33 +336,117 @@ function showLoginForm() {
                 <input type="password" id="password" required>
             </div>
             <button type="submit">Login</button>
+            <p class="auth-switch">
+                Need an account? <a href="#" onclick="showRegistrationForm(); return false;">Register</a>
+            </p>
         </form>
     `;
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
 }
 
-async function handleInitAdmin(e) {
+// Login handling
+async function handleLogin(e) {
     e.preventDefault();
-    const username = document.getElementById('init-username').value;
-    const password = document.getElementById('init-password').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
     try {
-        const response = await fetch('/api/init-admin', {
+        const response = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            alert('Admin account created successfully. Please log in.');
-            showLoginForm();
+            sessionStorage.setItem('adminToken', data.token);
+            // Store user info
+            sessionStorage.setItem('userData', JSON.stringify({
+                id: data.user.id,
+                username: data.user.username,
+                email: data.user.email
+            }));
+            showAdminPanel();
+            fetchVinyls();
         } else {
-            const data = await response.json();
-            alert(data.error || 'Failed to create admin account');
+            alert(data.error || 'Login failed. Please check your credentials.');
         }
     } catch (error) {
-        console.error('Error initializing admin:', error);
-        alert('Failed to create admin account');
+        console.error('Login error:', error);
+        alert('Login failed. Please try again.');
+    }
+}
+
+// Show registration form
+function showRegistrationForm() {
+    authSection.innerHTML = `
+        <form id="registrationForm">
+            <h2>Create Account</h2>
+            <div class="form-group">
+                <label for="reg-username">Username:</label>
+                <input type="text" id="reg-username" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-email">Email:</label>
+                <input type="email" id="reg-email" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Password:</label>
+                <input type="password" id="reg-password" required minlength="4">
+                <small>Password must be at least 4 characters long</small>
+            </div>
+            <div class="form-group">
+                <label for="reg-password-confirm">Confirm Password:</label>
+                <input type="password" id="reg-password-confirm" required>
+            </div>
+            <button type="submit">Register</button>
+            <p class="auth-switch">
+                Already have an account? <a href="#" onclick="showLoginForm(); return false;">Login</a>
+            </p>
+        </form>
+    `;
+    document.getElementById('registrationForm').addEventListener('submit', handleRegistration);
+}
+
+// Handle registration
+async function handleRegistration(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('reg-username').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    const passwordConfirm = document.getElementById('reg-password-confirm').value;
+
+    // Basic validation
+    if (password !== passwordConfirm) {
+        alert('Passwords do not match');
+        return;
+    }
+
+    if (password.length < 4) {
+        alert('Password must be at least 4 characters long');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            alert('Registration successful! Please log in.');
+            showLoginForm();
+        } else {
+            alert(data.error || 'Registration failed');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Registration failed. Please try again.');
     }
 }
 
@@ -387,7 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showAdminPanel();
         fetchVinyls();
     } else {
-        checkAdminExists();
+        showLoginForm(); // Default to showing login form
     }
 
     vinylForm.addEventListener('submit', handleAddVinyl);
