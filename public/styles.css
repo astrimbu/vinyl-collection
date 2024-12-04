@@ -646,3 +646,114 @@ td {
 .failed-list li a:hover {
     text-decoration: underline;
 }
+
+/* View switcher styles */
+.controls-wrapper {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.search-section input {
+    flex: 1;
+}
+
+.view-switcher {
+    display: flex;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 4px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.view-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-btn:hover {
+    background: var(--bg-main);
+}
+
+.view-btn.active {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+/* Grid view styles */
+.vinyl-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.vinyl-card {
+    background: var(--bg-card);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.vinyl-card:hover {
+    transform: translateY(-4px);
+}
+
+.vinyl-card .artwork {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vinyl-card .artwork img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vinyl-card .artwork .no-artwork {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 0.9em;
+}
+
+.vinyl-card .info {
+    padding: 12px;
+}
+
+.vinyl-card .artist {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.vinyl-card .title {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+.vinyl-card .metadata {
+    font-size: 0.8em;
+    color: var(--text-secondary);
+}
+
+.hidden {
+    display: none !important;
+}

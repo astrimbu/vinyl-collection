@@ -1,6 +1,9 @@
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
 const vinylTableBody = document.getElementById('vinylTableBody');
+const vinylList = document.getElementById('vinylList');
+const vinylGrid = document.getElementById('vinylGrid');
+const viewButtons = document.querySelectorAll('.view-btn');
 
 // State management
 let vinylCollection = [];
@@ -20,6 +23,7 @@ async function fetchVinyls() {
 
 // Display vinyls
 function displayVinyls(vinyls) {
+    // Table view
     vinylTableBody.innerHTML = '';
     
     vinyls.forEach(vinyl => {
@@ -39,6 +43,32 @@ function displayVinyls(vinyls) {
             ${vinyl.dupe ? '<td><span class="dupe-badge">Duplicate</span></td>' : '<td></td>'}
         `;
         vinylTableBody.appendChild(row);
+    });
+
+    // Grid view
+    vinylGrid.innerHTML = '';
+    
+    vinyls.forEach(vinyl => {
+        const card = document.createElement('div');
+        card.className = 'vinyl-card';
+        card.innerHTML = `
+            <div class="artwork">
+                ${vinyl.artwork_url ? 
+                    `<img src="${escapeHtml(vinyl.artwork_url)}" alt="Album artwork">` : 
+                    '<div class="no-artwork">No Image</div>'
+                }
+            </div>
+            <div class="info">
+                <div class="artist">${escapeHtml(vinyl.artist_name)}</div>
+                <div class="title">${escapeHtml(vinyl.title)}</div>
+                <div class="metadata">
+                    ${vinyl.identifier ? `ID: ${escapeHtml(vinyl.identifier)}<br>` : ''}
+                    ${vinyl.weight ? `Weight: ${vinyl.weight}<br>` : ''}
+                    ${vinyl.dupe ? '<span class="dupe-badge">Duplicate</span>' : ''}
+                </div>
+            </div>
+        `;
+        vinylGrid.appendChild(card);
     });
 }
 
@@ -81,6 +111,29 @@ function escapeHtml(str) {
     div.textContent = str;
     return div.innerHTML;
 }
+
+// Add view switching functionality
+viewButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const view = button.dataset.view;
+        
+        // Update active button
+        viewButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Show/hide appropriate view
+        if (view === 'table') {
+            vinylList.classList.remove('hidden');
+            vinylGrid.classList.add('hidden');
+        } else {
+            vinylList.classList.add('hidden');
+            vinylGrid.classList.remove('hidden');
+        }
+        
+        // Refresh the display
+        displayVinyls(vinylCollection);
+    });
+});
 
 // Initial load
 document.addEventListener('DOMContentLoaded', fetchVinyls);

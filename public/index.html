@@ -10,16 +10,26 @@
     <header>
         <h1>Vinyl Collection</h1>
         <nav>
-            <a href="/admin.html" class="admin-link">Admin Login</a>
+            <a href="/admin.html" class="admin-link" id="adminLink">Admin Login</a>
         </nav>
     </header>
 
     <main>
         <section class="search-section">
-            <input type="text" id="searchInput" placeholder="Search by artist, title, notes, or ID...">
+            <div class="controls-wrapper">
+                <input type="text" id="searchInput" placeholder="Search by artist, title, notes, or ID...">
+                <div class="view-switcher">
+                    <button class="view-btn active" data-view="table">
+                        <span class="material-icons">table_rows</span>
+                    </button>
+                    <button class="view-btn" data-view="grid">
+                        <span class="material-icons">grid_view</span>
+                    </button>
+                </div>
+            </div>
         </section>
 
-        <section class="vinyl-list">
+        <section class="vinyl-list table-view" id="vinylList">
             <table id="vinylTable">
                 <thead>
                     <tr>
@@ -36,8 +46,13 @@
                 </tbody>
             </table>
         </section>
+
+        <section class="vinyl-grid hidden" id="vinylGrid">
+            <!-- Grid items will be populated via JavaScript -->
+        </section>
     </main>
 
     <script src="scripts.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </body>
 </html>
