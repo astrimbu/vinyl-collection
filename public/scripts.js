@@ -2,17 +2,17 @@
 const searchInput = document.getElementById('searchInput');
 const vinylTableBody = document.getElementById('vinylTableBody');
 
-// State
+// State management
 let vinylCollection = [];
 let currentSort = { field: 'artist_name', ascending: true };
 
 // Fetch vinyls
 async function fetchVinyls() {
     try {
-        const response = await fetch('/api/vinyl');
+        const response = await fetch('/api/public/vinyl');
         const data = await response.json();
         vinylCollection = data;
-        displayVinyls(vinylCollection);
+        await displayVinyls(vinylCollection);
     } catch (error) {
         console.error('Error fetching vinyls:', error);
     }
@@ -25,7 +25,13 @@ function displayVinyls(vinyls) {
     vinyls.forEach(vinyl => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${escapeHtml(vinyl.artist_name)}</td>
+            <td>
+                ${vinyl.artwork_url ? 
+                    `<img src="${escapeHtml(vinyl.artwork_url)}" alt="Album artwork" class="album-thumb">` : 
+                    '<div class="no-artwork">No Image</div>'
+                }
+                ${escapeHtml(vinyl.artist_name)}
+            </td>
             <td>${escapeHtml(vinyl.title)}</td>
             <td>${escapeHtml(vinyl.identifier || '')}</td>
             <td>${vinyl.weight || ''}</td>

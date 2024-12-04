@@ -1,16 +1,20 @@
-// DOM Elements
 const authSection = document.getElementById('authSection');
 const adminPanel = document.getElementById('adminPanel');
 const logoutBtn = document.getElementById('logoutBtn');
 const vinylForm = document.getElementById('vinylForm');
 const adminVinylTableBody = document.getElementById('adminVinylTableBody');
 const adminSearchInput = document.getElementById('adminSearchInput');
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
+const updateArtworkBtn = document.getElementById('updateArtworkBtn');
+const updateProgress = document.getElementById('updateProgress');
+const progressCount = document.getElementById('progressCount');
+const totalCount = document.getElementById('totalCount');
+const currentRecord = document.getElementById('currentRecord');
 
-// State variables
 let currentSort = { field: 'artist_name', ascending: true };
 let vinylCollection = [];
 
-// Check if user is already logged in
 function checkAuthStatus() {
     const token = sessionStorage.getItem('adminToken');
     if (token) {
@@ -19,20 +23,17 @@ function checkAuthStatus() {
     }
 }
 
-// Show admin panel after successful login
 function showAdminPanel() {
     authSection.classList.add('hidden');
     adminPanel.classList.remove('hidden');
     logoutBtn.classList.remove('hidden');
 }
 
-// Logout handling
 logoutBtn.addEventListener('click', () => {
     sessionStorage.removeItem('adminToken');
     location.reload();
 });
 
-// Add sorting function
 function sortVinyls(field) {
     if (currentSort.field === field) {
         currentSort.ascending = !currentSort.ascending;
@@ -52,7 +53,6 @@ function sortVinyls(field) {
     displayVinyls(sortedVinyls);
 }
 
-// Fetch vinyls with authentication
 async function fetchVinyls() {
     try {
         const token = sessionStorage.getItem('adminToken');
@@ -67,13 +67,13 @@ async function fetchVinyls() {
         }
         
         const data = await response.json();
+        vinylCollection = data;
         displayVinyls(data);
     } catch (error) {
         console.error('Error fetching vinyls:', error);
     }
 }
 
-// Display vinyls in admin table
 function displayVinyls(vinyls) {
     const adminVinylTableBody = document.getElementById('adminVinylTableBody');
     adminVinylTableBody.innerHTML = '';
@@ -86,7 +86,13 @@ function displayVinyls(vinyls) {
     vinyls.forEach(vinyl => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${escapeHtml(vinyl.artist_name)}</td>
+            <td>
+                ${vinyl.artwork_url ? 
+                    `<img src="${escapeHtml(vinyl.artwork_url)}" alt="Album artwork" class="album-thumb">` : 
+                    '<div class="no-artwork">No Image</div>'
+                }
+                ${escapeHtml(vinyl.artist_name)}
+            </td>
             <td>${escapeHtml(vinyl.title)}</td>
             <td>${escapeHtml(vinyl.identifier || '')}</td>
             <td>${vinyl.weight || ''}</td>
@@ -101,19 +107,9 @@ function displayVinyls(vinyls) {
     });
 }
 
-// Add vinyl with authentication
 async function handleAddVinyl(e) {
     e.preventDefault();
     
-    const vinylData = {
-        artist_name: document.getElementById('artist_name').value,
-        title: document.getElementById('title').value,
-        identifier: document.getElementById('identifier').value,
-        weight: document.getElementById('weight').value,
-        notes: document.getElementById('notes').value,
-        dupe: document.getElementById('dupe').checked
-    };
-
     try {
         const token = sessionStorage.getItem('adminToken');
         const response = await fetch('/api/vinyl', {
@@ -129,7 +125,6 @@ async function handleAddVinyl(e) {
             throw new Error('Failed to add vinyl record');
         }
 
-        // Reset form and refresh display
         vinylForm.reset();
         fetchVinyls();
     } catch (error) {
@@ -138,7 +133,6 @@ async function handleAddVinyl(e) {
     }
 }
 
-// Delete vinyl record
 async function deleteVinyl(id) {
     if (!confirm('Are you sure you want to delete this record?')) return;
 
@@ -161,12 +155,10 @@ async function deleteVinyl(id) {
     }
 }
 
-// Edit vinyl record
 async function editVinyl(id) {
     const vinyl = vinylCollection.find(v => v.id === id);
     if (!vinyl) return;
 
-    // Create modal HTML
     const modalHTML = `
         <div class="modal-overlay">
             <div class="modal">
@@ -207,21 +199,17 @@ async function editVinyl(id) {
         </div>
     `;
 
-    // Add modal to DOM
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-    // Add event listeners
     const modalOverlay = document.querySelector('.modal-overlay');
     const editForm = document.getElementById('editForm');
 
-    // Close modal when clicking outside
     modalOverlay.addEventListener('click', (e) => {
         if (e.target === modalOverlay) {
             closeEditModal();
         }
     });
 
-    // Handle form submission
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -249,7 +237,6 @@ async function editVinyl(id) {
                 throw new Error(error.message || 'Failed to update vinyl record');
             }
 
-            // Close modal and refresh display
             closeEditModal();
             fetchVinyls();
         } catch (error) {
@@ -258,11 +245,9 @@ async function editVinyl(id) {
         }
     });
 
-    // Add escape key listener
     document.addEventListener('keydown', handleEscapeKey);
 }
 
-// Close modal function
 function closeEditModal() {
     const modalOverlay = document.querySelector('.modal-overlay');
     if (modalOverlay) {
@@ -271,14 +256,12 @@ function closeEditModal() {
     }
 }
 
-// Handle escape key press
 function handleEscapeKey(e) {
     if (e.key === 'Escape') {
         closeEditModal();
     }
 }
 
-// Utility function to prevent XSS (reused from scripts.js)
 function escapeHtml(str) {
     if (!str) return '';
     const div = document.createElement('div');
@@ -286,7 +269,6 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
-// Admin initialization
 async function checkAdminExists() {
     try {
         const response = await fetch('/api/admin-exists');
@@ -299,11 +281,10 @@ async function checkAdminExists() {
         }
     } catch (error) {
         console.error('Error checking admin status:', error);
-        showLoginForm(); // Default to login form if check fails
+        showLoginForm();
     }
 }
 
-// Show initialization form
 function showInitForm() {
     authSection.innerHTML = `
         <form id="initAdminForm">
@@ -322,7 +303,6 @@ function showInitForm() {
     document.getElementById('initAdminForm').addEventListener('submit', handleInitAdmin);
 }
 
-// Show login form
 function showLoginForm() {
     authSection.innerHTML = `
         <form id="loginForm">
@@ -344,7 +324,6 @@ function showLoginForm() {
     document.getElementById('loginForm').addEventListener('submit', handleLogin);
 }
 
-// Login handling
 async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('username').value;
@@ -361,7 +340,6 @@ async function handleLogin(e) {
 
         if (response.ok) {
             sessionStorage.setItem('adminToken', data.token);
-            // Store user info
             sessionStorage.setItem('userData', JSON.stringify({
                 id: data.user.id,
                 username: data.user.username,
@@ -378,7 +356,6 @@ async function handleLogin(e) {
     }
 }
 
-// Show registration form
 function showRegistrationForm() {
     authSection.innerHTML = `
         <form id="registrationForm">
@@ -409,7 +386,6 @@ function showRegistrationForm() {
     document.getElementById('registrationForm').addEventListener('submit', handleRegistration);
 }
 
-// Handle registration
 async function handleRegistration(e) {
     e.preventDefault();
     
@@ -418,7 +394,6 @@ async function handleRegistration(e) {
     const password = document.getElementById('reg-password').value;
     const passwordConfirm = document.getElementById('reg-password-confirm').value;
 
-    // Basic validation
     if (password !== passwordConfirm) {
         alert('Passwords do not match');
         return;
@@ -450,20 +425,57 @@ async function handleRegistration(e) {
     }
 }
 
-// Update initialization
 document.addEventListener('DOMContentLoaded', () => {
     const token = sessionStorage.getItem('adminToken');
     if (token) {
         showAdminPanel();
         fetchVinyls();
     } else {
-        showLoginForm(); // Default to showing login form
+        showLoginForm();
     }
 
     vinylForm.addEventListener('submit', handleAddVinyl);
+    importBtn.addEventListener('click', () => {
+        importFile.click();
+    });
+
+    importFile.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const csvContent = e.target.result;
+                const token = sessionStorage.getItem('adminToken');
+                
+                const response = await fetch('/api/vinyl/import', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/csv',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: csvContent
+                });
+
+                if (!response.ok) {
+                    throw new Error('Import failed');
+                }
+
+                const result = await response.json();
+                alert(`Successfully imported ${result.count} records`);
+                fetchVinyls();
+            } catch (error) {
+                console.error('Import error:', error);
+                alert('Failed to import records. Please check the file format and try again.');
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    updateArtworkBtn.addEventListener('click', updateMissingArtwork);
 });
 
-// Add search event listener
 adminSearchInput.addEventListener('input', (e) => {
     const searchTerm = e.target.value.toLowerCase();
     const filteredVinyls = vinylCollection.filter(vinyl => 
@@ -475,7 +487,101 @@ adminSearchInput.addEventListener('input', (e) => {
     displayVinyls(filteredVinyls);
 });
 
-// Get token from session storage
 function getToken() {
     return sessionStorage.getItem('adminToken');
 }
+
+async function updateMissingArtwork(e) {
+    e.preventDefault();
+    
+    try {
+        updateResults = { success: [], failed: [] };
+        successList.innerHTML = '';
+        failedList.innerHTML = '';
+        progressSummary.classList.add('hidden');
+        
+        updateArtworkBtn.disabled = true;
+        updateProgress.classList.add('visible');
+        
+        const token = sessionStorage.getItem('adminToken');
+        const response = await fetch('/api/vinyl/update-artwork', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.totalRecords === 0) {
+            alert('No records need artwork updates!');
+            updateArtworkBtn.disabled = false;
+            updateProgress.classList.remove('visible');
+            return;
+        }
+
+        totalCount.textContent = data.totalRecords;
+        let processedCount = 0;
+
+        const pollInterval = setInterval(async () => {
+            const progressResponse = await fetch('/api/vinyl/update-artwork/progress', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const progressData = await progressResponse.json();
+            
+            processedCount = progressData.processed;
+            progressCount.textContent = processedCount;
+            
+            if (progressData.results) {
+                updateResults = progressData.results;
+                updateSummary();
+            }
+            
+            const progressPercent = (processedCount / data.totalRecords) * 100;
+            document.querySelector('.progress-fill').style.width = `${progressPercent}%`;
+
+            if (progressData.completed || processedCount >= data.totalRecords) {
+                clearInterval(pollInterval);
+                updateArtworkBtn.disabled = false;
+                progressSummary.classList.remove('hidden');
+                fetchVinyls();
+            }
+        }, 2000);
+
+    } catch (error) {
+        console.error('Error updating artwork:', error);
+        alert('Failed to update artwork');
+        updateArtworkBtn.disabled = false;
+        updateProgress.classList.remove('visible');
+    }
+}
+
+function updateSummary() {
+    successCount.textContent = updateResults.success.length;
+    failedCount.textContent = updateResults.failed.length;
+    
+    successList.innerHTML = updateResults.success
+        .map(record => `<li>✓ ${record.artist_name} - ${record.title}</li>`)
+        .join('');
+    
+    failedList.innerHTML = updateResults.failed
+        .map(record => `
+            <li>
+                <a href="#" onclick="searchFor('${record.title}')">
+                    ✗ ${escapeHtml(record.artist_name)} - ${escapeHtml(record.title)}
+                </a>
+            </li>
+        `)
+        .join('');
+}
+
+function searchFor(searchTerm) {
+    adminSearchInput.value = searchTerm;
+    const event = new Event('input');
+    adminSearchInput.dispatchEvent(event);
+    updateProgress.classList.remove('visible');
+}
+
+closeProgress.addEventListener('click', () => {
+    updateProgress.classList.remove('visible');
+});

@@ -1,8 +1,13 @@
+require('dotenv').config();
+console.log('Server ENV check:', {
+    hasToken: !!process.env.DISCOGS_TOKEN,
+    tokenValue: process.env.DISCOGS_TOKEN
+});
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const routes = require('./src/routes');
-require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;

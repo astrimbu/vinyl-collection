@@ -24,7 +24,6 @@ function authenticateToken(req, res, next) {
             return res.status(403).json({ error: 'Invalid token' });
         }
 
-        // Verify user still exists in database
         const user = db.prepare('SELECT id, username, email FROM users WHERE id = ?')
             .get(decoded.id);
 
@@ -37,7 +36,6 @@ function authenticateToken(req, res, next) {
     });
 }
 
-// Helper function to check if user owns a resource
 function checkResourceOwnership(req, res, next) {
     const resourceId = req.params.id;
     const userId = req.user.id;

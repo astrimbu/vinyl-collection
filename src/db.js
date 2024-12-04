@@ -2,7 +2,6 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Create db directory if it doesn't exist
 const dbDir = path.join(__dirname, '../db');
 if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir);
@@ -11,7 +10,6 @@ if (!fs.existsSync(dbDir)) {
 
 const db = new Database(path.join(dbDir, 'vinyl.db'));
 
-// Create tables if they don't exist
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,6 +28,8 @@ db.exec(`
         notes TEXT,
         dupe BOOLEAN DEFAULT false,
         weight INTEGER,
+        artwork_url TEXT,
+        last_artwork_check TIMESTAMP,
         added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
     );

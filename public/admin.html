@@ -15,6 +15,36 @@
         </nav>
     </header>
 
+    <div id="updateProgress" class="progress-container">
+        <div class="progress-header">
+            <h3>Updating Artwork...</h3>
+            <button id="closeProgress" class="close-button">&times;</button>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <div class="progress-text">Processing: <span id="progressCount">0</span> / <span id="totalCount">0</span></div>
+        
+        <!-- Results summary -->
+        <div id="progressSummary" class="progress-summary hidden">
+            <h4>Update Complete</h4>
+            <div class="summary-stats">
+                <span>Successfully updated: <span id="successCount">0</span></span>
+                <span>Failed to find: <span id="failedCount">0</span></span>
+            </div>
+            <div class="summary-lists">
+                <div class="success-list">
+                    <h5>Updated Records:</h5>
+                    <ul id="successList"></ul>
+                </div>
+                <div class="failed-list">
+                    <h5>Not Found:</h5>
+                    <ul id="failedList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <main>
         <!-- This section will be dynamically populated with either init or login form -->
         <section id="authSection">
@@ -40,11 +70,11 @@
                     <label for="weight">Weight (g):</label>
                     <input type="number" id="weight">
                 </div>
-                <div class="form-group">
+                <div class="form-group notes-group">
                     <label for="notes">Notes:</label>
                     <textarea id="notes"></textarea>
                 </div>
-                <div class="form-group">
+                <div class="form-group checkbox-group">
                     <label>
                         <input type="checkbox" id="dupe">
                         Duplicate Copy
@@ -54,7 +84,15 @@
             </form>
 
             <div class="vinyl-management">
-                <h2>Manage Collection</h2>
+                <div class="management-header">
+                    <h2>Manage Collection</h2>
+                    <div class="management-actions">
+                        <a href="#" id="importBtn">Import Records</a>
+                        <span class="action-separator">•</span>
+                        <a href="#" id="updateArtworkBtn">Update Missing Artwork</a>
+                        <input type="file" id="importFile" accept=".csv" style="display: none;">
+                    </div>
+                </div>
                 <div class="search-section">
                     <input type="text" id="adminSearchInput" placeholder="Search by artist, title, or notes...">
                 </div>
