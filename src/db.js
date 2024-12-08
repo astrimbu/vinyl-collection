@@ -30,6 +30,7 @@ db.exec(`
         weight INTEGER,
         artwork_url TEXT,
         last_artwork_check TIMESTAMP,
+        tracks TEXT,
         added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
     );

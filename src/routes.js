@@ -339,4 +339,33 @@ router.get('/api/vinyl/update-artwork/progress', authenticateToken, (req, res) =
     }
 });
 
+router.get('/api/vinyl/:id/tracks', async (req, res) => {
+    try {
+        const vinyl = db.prepare('SELECT * FROM vinyls WHERE id = ?').get(req.params.id);
+        
+        if (!vinyl) {
+            return res.status(404).json({ error: 'Vinyl not found' });
+        }
+
+        // If we already have tracks stored, return them
+        if (vinyl.tracks) {
+            return res.json({ tracks: JSON.parse(vinyl.tracks) });
+        }
+
+        // Otherwise fetch from Discogs
+        const trackInfo = await discogsClient.getTrackList(vinyl.artist_name, vinyl.title);
+        
+        // Store the tracks in the database
+        if (trackInfo && trackInfo.tracks) {
+            db.prepare('UPDATE vinyls SET tracks = ? WHERE id = ?')
+                .run(JSON.stringify(trackInfo.tracks), vinyl.id);
+        }
+
+        res.json({ tracks: trackInfo.tracks || [] });
+    } catch (error) {
+        console.error('Error fetching tracks:', error);
+        res.status(500).json({ error: 'Failed to fetch tracks' });
+    }
+});
+
 module.exports = router;

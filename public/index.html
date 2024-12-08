@@ -35,8 +35,6 @@
                     <tr>
                         <th onclick="sortVinyls('artist_name')" style="cursor: pointer">Artist</th>
                         <th onclick="sortVinyls('title')" style="cursor: pointer">Title</th>
-                        <th onclick="sortVinyls('identifier')" style="cursor: pointer">ID</th>
-                        <th onclick="sortVinyls('weight')" style="cursor: pointer">Weight</th>
                         <th onclick="sortVinyls('notes')" style="cursor: pointer">Notes</th>
                         <th onclick="sortVinyls('dupe')" style="cursor: pointer">Duplicate</th>
                     </tr>
@@ -51,6 +49,34 @@
             <!-- Grid items will be populated via JavaScript -->
         </section>
     </main>
+
+    <div id="albumModal" class="modal-overlay hidden">
+        <div class="modal album-modal">
+            <div class="modal-header">
+                <h2>Album Details</h2>
+                <button class="close-button" onclick="closeAlbumModal()">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="album-info">
+                    <div class="album-artwork">
+                        <!-- Artwork will be inserted here -->
+                    </div>
+                    <div class="album-details">
+                        <h3 class="album-artist"></h3>
+                        <h4 class="album-title"></h4>
+                        <p class="album-notes"></p>
+                        <p class="album-metadata"></p>
+                    </div>
+                </div>
+                <div class="track-list">
+                    <h4>Track List</h4>
+                    <div class="tracks-container">
+                        <!-- Tracks will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="scripts.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

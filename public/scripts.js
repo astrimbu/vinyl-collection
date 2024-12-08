@@ -37,8 +37,6 @@ function displayVinyls(vinyls) {
                 ${escapeHtml(vinyl.artist_name)}
             </td>
             <td>${escapeHtml(vinyl.title)}</td>
-            <td>${escapeHtml(vinyl.identifier || '')}</td>
-            <td>${vinyl.weight || ''}</td>
             <td>${escapeHtml(vinyl.notes || '')}</td>
             ${vinyl.dupe ? '<td><span class="dupe-badge">Duplicate</span></td>' : '<td></td>'}
         `;
@@ -51,6 +49,7 @@ function displayVinyls(vinyls) {
     vinyls.forEach(vinyl => {
         const card = document.createElement('div');
         card.className = 'vinyl-card';
+        card.onclick = () => showAlbumModal(vinyl);
         card.innerHTML = `
             <div class="artwork">
                 ${vinyl.artwork_url ? 
@@ -62,8 +61,6 @@ function displayVinyls(vinyls) {
                 <div class="artist">${escapeHtml(vinyl.artist_name)}</div>
                 <div class="title">${escapeHtml(vinyl.title)}</div>
                 <div class="metadata">
-                    ${vinyl.identifier ? `ID: ${escapeHtml(vinyl.identifier)}<br>` : ''}
-                    ${vinyl.weight ? `Weight: ${vinyl.weight}<br>` : ''}
                     ${vinyl.dupe ? '<span class="dupe-badge">Duplicate</span>' : ''}
                 </div>
             </div>
@@ -177,3 +174,84 @@ viewButtons.forEach(button => {
 
 // Initial load
 document.addEventListener('DOMContentLoaded', fetchVinyls);
+
+// Album modal functions
+function showAlbumModal(vinyl) {
+    const modal = document.getElementById('albumModal');
+    const artwork = modal.querySelector('.album-artwork');
+    const artist = modal.querySelector('.album-artist');
+    const title = modal.querySelector('.album-title');
+    const notes = modal.querySelector('.album-notes');
+    const metadata = modal.querySelector('.album-metadata');
+    const tracksContainer = modal.querySelector('.tracks-container');
+
+    // Set basic info
+    artwork.innerHTML = vinyl.artwork_url ? 
+        `<img src="${escapeHtml(vinyl.artwork_url)}" alt="Album artwork">` : 
+        '<div class="no-artwork">No Image</div>';
+    artist.textContent = vinyl.artist_name;
+    title.textContent = vinyl.title;
+    notes.textContent = vinyl.notes || '';
+    metadata.innerHTML = `
+        ${vinyl.identifier ? `<div>ID: ${escapeHtml(vinyl.identifier)}</div>` : ''}
+        ${vinyl.weight ? `<div>Weight: ${vinyl.weight}g</div>` : ''}
+        ${vinyl.dupe ? '<div><span class="dupe-badge">Duplicate</span></div>' : ''}
+    `;
+
+    // Load tracks if they exist, otherwise fetch them
+    if (vinyl.tracks) {
+        displayTracks(JSON.parse(vinyl.tracks));
+    } else {
+        fetchAndDisplayTracks(vinyl);
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeAlbumModal() {
+    document.getElementById('albumModal').classList.add('hidden');
+}
+
+function displayTracks(tracks) {
+    const container = document.querySelector('.tracks-container');
+    if (!tracks || tracks.length === 0) {
+        container.innerHTML = '<p class="text-secondary">No track information available</p>';
+        return;
+    }
+
+    container.innerHTML = tracks.map(track => `
+        <div class="track-item">
+            <span class="track-position">${escapeHtml(track.position)}</span>
+            <span class="track-title">${escapeHtml(track.title)}</span>
+            <span class="track-duration">${escapeHtml(track.duration || '')}</span>
+        </div>
+    `).join('');
+}
+
+async function fetchAndDisplayTracks(vinyl) {
+    const container = document.querySelector('.tracks-container');
+    container.innerHTML = '<p>Loading tracks...</p>';
+
+    try {
+        const response = await fetch(`/api/vinyl/${vinyl.id}/tracks`);
+        const data = await response.json();
+        displayTracks(data.tracks);
+    } catch (error) {
+        console.error('Error fetching tracks:', error);
+        container.innerHTML = '<p class="text-error">Failed to load tracks</p>';
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('albumModal').addEventListener('click', (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+        closeAlbumModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeAlbumModal();
+    }
+});
