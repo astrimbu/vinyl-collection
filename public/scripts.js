@@ -72,9 +72,49 @@ function displayVinyls(vinyls) {
     });
 }
 
-// Search functionality
-searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
+// Add document-level keyboard listener
+document.addEventListener('keydown', (e) => {
+    // Ignore if user is typing in another input/textarea
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+    }
+    
+    // Handle Ctrl+A to focus and select search input text
+    if (e.ctrlKey && e.key === 'a') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+        return;
+    }
+    
+    // Ignore other special keys (ctrl, alt, etc.)
+    if (e.ctrlKey || e.altKey || e.metaKey) {
+        return;
+    }
+
+    // Only handle alphanumeric keys, space, and backspace
+    if (e.key.length === 1 || e.key === 'Backspace') {
+        if (e.key === 'Backspace') {
+            searchInput.value = searchInput.value.slice(0, -1);
+        } else {
+            searchInput.value += e.key;
+        }
+        
+        // Trigger the search
+        const searchTerm = searchInput.value.toLowerCase();
+        const filteredVinyls = vinylCollection.filter(vinyl => 
+            vinyl.artist_name.toLowerCase().includes(searchTerm) ||
+            vinyl.title.toLowerCase().includes(searchTerm) ||
+            (vinyl.notes && vinyl.notes.toLowerCase().includes(searchTerm)) ||
+            (vinyl.identifier && vinyl.identifier.toLowerCase().includes(searchTerm))
+        );
+        displayVinyls(filteredVinyls);
+    }
+});
+
+// Add input event listener for direct searchInput interactions
+searchInput.addEventListener('input', () => {
+    const searchTerm = searchInput.value.toLowerCase();
     const filteredVinyls = vinylCollection.filter(vinyl => 
         vinyl.artist_name.toLowerCase().includes(searchTerm) ||
         vinyl.title.toLowerCase().includes(searchTerm) ||
