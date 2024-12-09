@@ -43,37 +43,42 @@
         </section>
 
         <!-- Admin Add Form (visible when logged in) -->
-        <section id="adminAddSection" class="admin-only hidden">
-            <form id="vinylForm">
+        <section id="adminAddSection" class="admin-only">
+            <div class="collapsible-header collapsed">
+                <span class="material-icons">expand_more</span>
                 <h2>Add New Vinyl</h2>
-                <div class="form-group">
-                    <label for="artist_name">Artist Name:</label>
-                    <input type="text" id="artist_name" required>
-                </div>
-                <div class="form-group">
-                    <label for="title">Title:</label>
-                    <input type="text" id="title" required>
-                </div>
-                <div class="form-group">
-                    <label for="identifier">Identifier:</label>
-                    <input type="text" id="identifier">
-                </div>
-                <div class="form-group">
-                    <label for="weight">Weight (g):</label>
-                    <input type="number" id="weight">
-                </div>
-                <div class="form-group notes-group">
-                    <label for="notes">Notes:</label>
-                    <textarea id="notes"></textarea>
-                </div>
-                <div class="form-group checkbox-group">
-                    <label>
-                        <input type="checkbox" id="dupe">
-                        Duplicate Copy
-                    </label>
-                </div>
-                <button type="submit">Add Record</button>
-            </form>
+            </div>
+            <div class="collapsible-content collapsed">
+                <form id="vinylForm">
+                    <div class="form-group">
+                        <label for="artist_name">Artist Name:</label>
+                        <input type="text" id="artist_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" id="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="identifier">Identifier:</label>
+                        <input type="text" id="identifier">
+                    </div>
+                    <div class="form-group">
+                        <label for="weight">Weight (g):</label>
+                        <input type="number" id="weight">
+                    </div>
+                    <div class="form-group notes-group">
+                        <label for="notes">Notes:</label>
+                        <textarea id="notes"></textarea>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="dupe">
+                            Duplicate Copy
+                        </label>
+                    </div>
+                    <button type="submit">Add Record</button>
+                </form>
+            </div>
         </section>
 
         <!-- Search Section -->

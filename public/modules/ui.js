@@ -19,6 +19,24 @@ export class UIManager {
     }
 
     initializeEventListeners() {
+        // Initialize collapsible functionality
+        const header = document.querySelector('.collapsible-header');
+        const content = document.querySelector('.collapsible-content');
+        
+        if (header && content) {
+            header.addEventListener('click', () => {
+                header.classList.toggle('collapsed');
+                content.classList.toggle('collapsed');
+                
+                // Update the expand icon rotation based on state
+                const icon = header.querySelector('.material-icons');
+                if (icon) {
+                    icon.style.transform = header.classList.contains('collapsed') ? 
+                        'rotate(-90deg)' : 'rotate(0deg)';
+                }
+            });
+        }
+
         // Global keyboard shortcuts
         document.addEventListener('keydown', (e) => {
             // Ignore if user is typing in an input/textarea
