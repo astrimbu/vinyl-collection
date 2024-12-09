@@ -187,6 +187,9 @@ class DiscogsClient {
             const cleanArtist = artist.replace(/[^\w\s-]/g, '').trim();
             const cleanTitle = title.replace(/,.*$/, '').replace(/[^\w\s-]/g, '').trim();
 
+            console.log(`[Discogs] Searching for release: ${artist} - ${title}`);
+            console.log(`[Discogs] Using cleaned search terms: ${cleanArtist} - ${cleanTitle}`);
+
             const searchUrl = new URL(`${this.baseUrl}/database/search`);
             searchUrl.searchParams.append('type', 'release');
             searchUrl.searchParams.append('artist', cleanArtist);
@@ -200,14 +203,18 @@ class DiscogsClient {
             });
 
             if (!searchResponse.ok) {
+                console.error(`[Discogs] Search API error: ${searchResponse.status}`);
                 throw new Error(`Discogs API error: ${searchResponse.status}`);
             }
 
             const searchData = await searchResponse.json();
             
             if (!searchData.results?.[0]?.id) {
+                console.log(`[Discogs] No results found for: ${artist} - ${title}`);
                 return { tracks: [] };
             }
+
+            console.log(`[Discogs] Found release ID ${searchData.results[0].id} for: ${artist} - ${title}`);
 
             // Fetch the release details using the release ID
             const releaseUrl = `${this.baseUrl}/releases/${searchData.results[0].id}`;
@@ -219,10 +226,12 @@ class DiscogsClient {
             });
 
             if (!releaseResponse.ok) {
+                console.error(`[Discogs] Release API error: ${releaseResponse.status}`);
                 throw new Error(`Discogs API error: ${releaseResponse.status}`);
             }
 
             const releaseData = await releaseResponse.json();
+            console.log(`[Discogs] Successfully retrieved track data for: ${artist} - ${title}`);
             
             // Transform the tracklist data
             const tracks = releaseData.tracklist.map(track => ({
@@ -233,7 +242,7 @@ class DiscogsClient {
 
             return { tracks };
         } catch (error) {
-            console.error('Error fetching tracks:', error);
+            console.error('[Discogs] Error fetching tracks:', error);
             return { tracks: [] };
         }
     }

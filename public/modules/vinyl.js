@@ -128,6 +128,10 @@ export class VinylManager {
 
     async fetchTracks(vinyl) {
         try {
+            if (!vinyl.id) {
+                throw new Error('Invalid vinyl record ID');
+            }
+
             const response = await fetch(`/api/vinyl/${vinyl.id}/tracks`, {
                 headers: this.app.auth.getAuthHeaders()
             });
@@ -138,7 +142,7 @@ export class VinylManager {
             return data.tracks || [];
         } catch (error) {
             console.error('Error fetching tracks:', error);
-            return [];
+            throw error; // Re-throw to handle in the modal
         }
     }
 

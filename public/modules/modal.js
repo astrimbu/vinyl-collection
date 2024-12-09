@@ -159,6 +159,11 @@ export class ModalManager {
         `;
 
         try {
+            // Check if vinyl has an ID
+            if (!vinyl.id) {
+                throw new Error('Invalid vinyl record');
+            }
+
             const tracks = await this.app.vinyl.fetchTracks(vinyl);
             
             if (!tracks || tracks.length === 0) {

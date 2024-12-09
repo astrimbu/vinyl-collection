@@ -344,26 +344,30 @@ router.get('/api/vinyl/:id/tracks', async (req, res) => {
         const vinyl = db.prepare('SELECT * FROM vinyls WHERE id = ?').get(req.params.id);
         
         if (!vinyl) {
+            console.log(`[DB] No vinyl found with ID: ${req.params.id}`);
             return res.status(404).json({ error: 'Vinyl not found' });
         }
 
         // If we already have tracks stored, return them
         if (vinyl.tracks) {
+            console.log(`[DB] Retrieved cached tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
             return res.json({ tracks: JSON.parse(vinyl.tracks) });
         }
 
         // Otherwise fetch from Discogs
+        console.log(`[Discogs] Fetching tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
         const trackInfo = await discogsClient.getTrackList(vinyl.artist_name, vinyl.title);
         
         // Store the tracks in the database
         if (trackInfo && trackInfo.tracks) {
+            console.log(`[DB] Storing tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
             db.prepare('UPDATE vinyls SET tracks = ? WHERE id = ?')
                 .run(JSON.stringify(trackInfo.tracks), vinyl.id);
         }
 
         res.json({ tracks: trackInfo.tracks || [] });
     } catch (error) {
-        console.error('Error fetching tracks:', error);
+        console.error('[Error] Error fetching tracks:', error);
         res.status(500).json({ error: 'Failed to fetch tracks' });
     }
 });
