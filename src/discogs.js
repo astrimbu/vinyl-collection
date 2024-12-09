@@ -184,8 +184,14 @@ class DiscogsClient {
 
         try {
             // First, search for the release
-            const cleanArtist = artist.replace(/[^\w\s-]/g, '').trim();
-            const cleanTitle = title.replace(/,.*$/, '').replace(/[^\w\s-]/g, '').trim();
+            // Less aggressive cleaning - only remove special characters that would break the URL
+            const cleanArtist = artist
+                .replace(/[&+]/g, '') // Remove problematic URL characters
+                .trim();
+            const cleanTitle = title
+                .replace(/,.*$/, '') // Remove anything after a comma
+                .replace(/[&+]/g, '') // Remove problematic URL characters
+                .trim();
 
             console.log(`[Discogs] Searching for release: ${artist} - ${title}`);
             console.log(`[Discogs] Using cleaned search terms: ${cleanArtist} - ${cleanTitle}`);
@@ -194,6 +200,9 @@ class DiscogsClient {
             searchUrl.searchParams.append('type', 'release');
             searchUrl.searchParams.append('artist', cleanArtist);
             searchUrl.searchParams.append('release_title', cleanTitle);
+
+            // Log the final URL for debugging
+            console.log(`[Discogs] Search URL: ${searchUrl.toString()}`);
 
             const searchResponse = await fetch(searchUrl.toString(), {
                 headers: {
@@ -211,7 +220,7 @@ class DiscogsClient {
             
             if (!searchData.results?.[0]?.id) {
                 console.log(`[Discogs] No results found for: ${artist} - ${title}`);
-                return { tracks: [] };
+                return null;
             }
 
             console.log(`[Discogs] Found release ID ${searchData.results[0].id} for: ${artist} - ${title}`);
@@ -233,6 +242,10 @@ class DiscogsClient {
             const releaseData = await releaseResponse.json();
             console.log(`[Discogs] Successfully retrieved track data for: ${artist} - ${title}`);
             
+            if (!releaseData.tracklist || releaseData.tracklist.length === 0) {
+                return null;
+            }
+            
             // Transform the tracklist data
             const tracks = releaseData.tracklist.map(track => ({
                 position: track.position,
@@ -243,7 +256,7 @@ class DiscogsClient {
             return { tracks };
         } catch (error) {
             console.error('[Discogs] Error fetching tracks:', error);
-            return { tracks: [] };
+            return null;
         }
     }
 }

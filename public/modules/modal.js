@@ -166,7 +166,8 @@ export class ModalManager {
 
             const tracks = await this.app.vinyl.fetchTracks(vinyl);
             
-            if (!tracks || tracks.length === 0) {
+            // More robust check for valid track data
+            if (!tracks || !Array.isArray(tracks) || tracks.length === 0) {
                 container.innerHTML = '<p class="text-secondary">No track information available</p>';
                 return;
             }
@@ -183,7 +184,12 @@ export class ModalManager {
             container.innerHTML = `
                 <div class="error-message">
                     <p>Failed to load tracks</p>
-                    <button onclick="app.modal.loadTracks(${JSON.stringify(vinyl)}, this.parentElement)">
+                    <div class="error-details">
+                        <p>Search attempted with:</p>
+                        <pre>Artist: ${this.app.vinyl.escapeHtml(vinyl.artist_name)}
+Title: ${this.app.vinyl.escapeHtml(vinyl.title)}</pre>
+                    </div>
+                    <button onclick="app.modal.loadTracks(${JSON.stringify(vinyl)}, this.closest('.tracks-container'))">
                         Try Again
                     </button>
                 </div>

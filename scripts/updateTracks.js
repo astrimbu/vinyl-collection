@@ -3,7 +3,7 @@ const discogsClient = require('../src/discogs');
 
 async function updateTracks() {
     // Get all records without track information
-    const records = db.prepare('SELECT id, artist_name, title FROM vinyls WHERE tracks IS NULL').all();
+    const records = db.prepare('SELECT id, artist_name, title FROM vinyls WHERE tracks IS NULL OR tracks = "[]"').all();
     
     console.log(`Found ${records.length} records without track information`);
     
@@ -16,13 +16,15 @@ async function updateTracks() {
             
             const trackInfo = await discogsClient.getTrackList(record.artist_name, record.title);
             
-            if (trackInfo.tracks && trackInfo.tracks.length > 0) {
+            // Only store track data if we have valid tracks
+            if (trackInfo.tracks && Array.isArray(trackInfo.tracks) && trackInfo.tracks.length > 0) {
                 db.prepare('UPDATE vinyls SET tracks = ? WHERE id = ?')
                     .run(JSON.stringify(trackInfo.tracks), record.id);
                 console.log(`✓ Updated tracks for: ${record.artist_name} - ${record.title}`);
                 success++;
             } else {
-                console.log(`✗ No tracks found for: ${record.artist_name} - ${record.title}`);
+                // Keep tracks as NULL if we didn't get valid data
+                console.log(`✗ No valid tracks found for: ${record.artist_name} - ${record.title}`);
                 failed++;
             }
             
