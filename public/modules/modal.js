@@ -2,6 +2,13 @@ export class ModalManager {
     constructor(app) {
         this.app = app;
         this.activeModals = new Set();
+        
+        // Add event listener for album modal close button
+        const albumModal = document.getElementById('albumModal');
+        const closeBtn = albumModal.querySelector('.close-button');
+        closeBtn.addEventListener('click', () => {
+            albumModal.classList.add('hidden');
+        });
     }
 
     showAuthModal() {
@@ -127,6 +134,16 @@ export class ModalManager {
 
     showAlbumModal(vinyl) {
         const modal = document.getElementById('albumModal');
+        
+        // Add close button if it doesn't exist
+        if (!modal.querySelector('.close-button')) {
+            const closeButton = document.createElement('button');
+            closeButton.className = 'close-button';
+            closeButton.innerHTML = '&times;';
+            closeButton.onclick = () => modal.classList.add('hidden');
+            modal.insertAdjacentElement('afterbegin', closeButton);
+        }
+
         const artwork = modal.querySelector('.album-artwork');
         const artist = modal.querySelector('.album-artist');
         const title = modal.querySelector('.album-title');
