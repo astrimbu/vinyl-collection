@@ -834,3 +834,44 @@ td {
     text-align: right;
     color: var(--text-secondary);
 }
+
+/* Loading states */
+.loading-tracks {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--border-color);
+    border-top-color: var(--text-primary);
+    border-radius: 50%;
+    margin: 10px auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    color: #f44336;
+}
+
+.error-message button {
+    margin-top: 10px;
+    background: none;
+    border: 1px solid currentColor;
+    color: inherit;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    cursor: pointer;
+}
+
+.error-message button:hover {
+    background: rgba(244, 67, 54, 0.1);
+}

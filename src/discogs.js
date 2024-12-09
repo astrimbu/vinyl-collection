@@ -123,6 +123,120 @@ class DiscogsClient {
             return null;
         }
     }
+
+    async getTrackList(artist, title) {
+        return new Promise((resolve, reject) => {
+            this.requestQueue.push({ 
+                type: 'tracks',
+                artist, 
+                title, 
+                resolve, 
+                reject 
+            });
+            this.processQueue();
+        });
+    }
+
+    async processQueue() {
+        if (this.processing) return;
+        this.processing = true;
+
+        while (this.requestQueue.length > 0) {
+            // Rate limit checking (same as before)
+            const now = Date.now();
+            if (now - this.minuteStart >= 60000) {
+                this.requestsThisMinute = 0;
+                this.minuteStart = now;
+            }
+
+            if (this.requestsThisMinute >= 55) {
+                const waitTime = 60000 - (now - this.minuteStart);
+                console.log(`Rate limit reached. Waiting ${waitTime}ms...`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+                continue;
+            }
+
+            // Process next request
+            const request = this.requestQueue[0];
+            try {
+                let result;
+                if (request.type === 'tracks') {
+                    result = await this._fetchTracks(request.artist, request.title);
+                } else {
+                    result = await this._makeRequest(request.artist, request.title);
+                }
+                request.resolve(result);
+            } catch (error) {
+                request.reject(error);
+            }
+            
+            this.requestQueue.shift();
+            this.requestsThisMinute++;
+        }
+
+        this.processing = false;
+    }
+
+    async _fetchTracks(artist, title) {
+        if (!fetch) {
+            fetch = (await import('node-fetch')).default;
+        }
+
+        try {
+            // First, search for the release
+            const cleanArtist = artist.replace(/[^\w\s-]/g, '').trim();
+            const cleanTitle = title.replace(/,.*$/, '').replace(/[^\w\s-]/g, '').trim();
+
+            const searchUrl = new URL(`${this.baseUrl}/database/search`);
+            searchUrl.searchParams.append('type', 'release');
+            searchUrl.searchParams.append('artist', cleanArtist);
+            searchUrl.searchParams.append('release_title', cleanTitle);
+
+            const searchResponse = await fetch(searchUrl.toString(), {
+                headers: {
+                    'User-Agent': this.userAgent,
+                    'Authorization': `Discogs token=${this.token}`
+                }
+            });
+
+            if (!searchResponse.ok) {
+                throw new Error(`Discogs API error: ${searchResponse.status}`);
+            }
+
+            const searchData = await searchResponse.json();
+            
+            if (!searchData.results?.[0]?.id) {
+                return { tracks: [] };
+            }
+
+            // Fetch the release details using the release ID
+            const releaseUrl = `${this.baseUrl}/releases/${searchData.results[0].id}`;
+            const releaseResponse = await fetch(releaseUrl, {
+                headers: {
+                    'User-Agent': this.userAgent,
+                    'Authorization': `Discogs token=${this.token}`
+                }
+            });
+
+            if (!releaseResponse.ok) {
+                throw new Error(`Discogs API error: ${releaseResponse.status}`);
+            }
+
+            const releaseData = await releaseResponse.json();
+            
+            // Transform the tracklist data
+            const tracks = releaseData.tracklist.map(track => ({
+                position: track.position,
+                title: track.title,
+                duration: track.duration
+            }));
+
+            return { tracks };
+        } catch (error) {
+            console.error('Error fetching tracks:', error);
+            return { tracks: [] };
+        }
+    }
 }
 
 module.exports = new DiscogsClient();

@@ -230,15 +230,40 @@ function displayTracks(tracks) {
 
 async function fetchAndDisplayTracks(vinyl) {
     const container = document.querySelector('.tracks-container');
-    container.innerHTML = '<p>Loading tracks...</p>';
+    container.innerHTML = `
+        <div class="loading-tracks">
+            <p>Fetching track information...</p>
+            <div class="loading-spinner"></div>
+        </div>
+    `;
 
     try {
         const response = await fetch(`/api/vinyl/${vinyl.id}/tracks`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch tracks');
+        }
+        
         const data = await response.json();
+        
+        // Update the vinyl object in our collection with the new tracks
+        if (data.tracks) {
+            const index = vinylCollection.findIndex(v => v.id === vinyl.id);
+            if (index !== -1) {
+                vinylCollection[index].tracks = JSON.stringify(data.tracks);
+            }
+        }
+        
         displayTracks(data.tracks);
     } catch (error) {
         console.error('Error fetching tracks:', error);
-        container.innerHTML = '<p class="text-error">Failed to load tracks</p>';
+        container.innerHTML = `
+            <div class="error-message">
+                <p>Failed to load tracks</p>
+                <button onclick="fetchAndDisplayTracks(${JSON.stringify(vinyl)})">
+                    Try Again
+                </button>
+            </div>
+        `;
     }
 }
 
