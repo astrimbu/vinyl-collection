@@ -5,19 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vinyl Collection</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
     <header>
         <h1>Vinyl Collection</h1>
         <nav>
-            <a href="/admin.html" class="admin-link" id="adminLink">Admin Login</a>
-        </nav>
-    </header>
-
-    <main>
-        <section class="search-section">
-            <div class="controls-wrapper">
-                <input type="text" id="searchInput" placeholder="Search by artist, title, notes, or ID...">
+            <!-- View controls (visible to all) -->
+            <div class="view-controls">
                 <div class="view-switcher">
                     <button class="view-btn active" data-view="table">
                         <span class="material-icons">table_rows</span>
@@ -27,8 +22,68 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Auth controls -->
+            <div class="auth-controls">
+                <button id="loginBtn" class="auth-btn guest-only">Login</button>
+                <div class="admin-controls admin-only">
+                    <button id="importBtn" class="action-btn">Import</button>
+                    <button id="updateArtworkBtn" class="action-btn">Update Artwork</button>
+                    <button id="logoutBtn" class="auth-btn">Logout</button>
+                </div>
+                <input type="file" id="importFile" accept=".csv" style="display: none;">
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Auth Section (initially hidden) -->
+        <section id="authSection" class="auth-section hidden">
+            <!-- Login/Registration forms will be injected here -->
         </section>
 
+        <!-- Admin Add Form (visible when logged in) -->
+        <section id="adminAddSection" class="admin-only hidden">
+            <form id="vinylForm">
+                <h2>Add New Vinyl</h2>
+                <div class="form-group">
+                    <label for="artist_name">Artist Name:</label>
+                    <input type="text" id="artist_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="identifier">Identifier:</label>
+                    <input type="text" id="identifier">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (g):</label>
+                    <input type="number" id="weight">
+                </div>
+                <div class="form-group notes-group">
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="dupe">
+                        Duplicate Copy
+                    </label>
+                </div>
+                <button type="submit">Add Record</button>
+            </form>
+        </section>
+
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="controls-wrapper">
+                <input type="text" id="searchInput" placeholder="Search by artist, title, notes, or ID...">
+            </div>
+        </section>
+
+        <!-- Vinyl Display Sections -->
         <section class="vinyl-list table-view" id="vinylList">
             <table id="vinylTable">
                 <thead>
@@ -37,6 +92,7 @@
                         <th onclick="sortVinyls('title')" style="cursor: pointer">Title</th>
                         <th onclick="sortVinyls('notes')" style="cursor: pointer">Notes</th>
                         <th onclick="sortVinyls('dupe')" style="cursor: pointer">Duplicate</th>
+                        <th class="admin-only">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="vinylTableBody">
@@ -50,6 +106,37 @@
         </section>
     </main>
 
+    <!-- Progress Overlay -->
+    <div id="updateProgress" class="progress-container">
+        <div class="progress-header">
+            <h3>Updating Artwork...</h3>
+            <button id="closeProgress" class="close-button">&times;</button>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+        <div class="progress-text">Processing: <span id="progressCount">0</span> / <span id="totalCount">0</span></div>
+        
+        <div id="progressSummary" class="progress-summary hidden">
+            <h4>Update Complete</h4>
+            <div class="summary-stats">
+                <span>Successfully updated: <span id="successCount">0</span></span>
+                <span>Failed to find: <span id="failedCount">0</span></span>
+            </div>
+            <div class="summary-lists">
+                <div class="success-list">
+                    <h5>Updated Records:</h5>
+                    <ul id="successList"></ul>
+                </div>
+                <div class="failed-list">
+                    <h5>Not Found:</h5>
+                    <ul id="failedList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Album Details Modal -->
     <div id="albumModal" class="modal-overlay hidden">
         <div class="modal album-modal">
             <div class="modal-header">
@@ -78,7 +165,6 @@
         </div>
     </div>
 
-    <script src="scripts.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="app.js" type="module"></script>
 </body>
 </html>

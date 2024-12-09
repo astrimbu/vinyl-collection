@@ -10,6 +10,168 @@
     --input-border: #dde1e5;
 }
 
+/* Visibility Classes */
+.admin-only {
+    display: none !important;
+}
+
+.guest-only {
+    display: none !important;
+}
+
+body[data-auth="admin"] .admin-only {
+    display: block !important;
+}
+
+body[data-auth="admin"] .guest-only {
+    display: none !important;
+}
+
+body[data-auth="guest"] .guest-only {
+    display: block !important;
+}
+
+body[data-auth="guest"] .admin-only {
+    display: none !important;
+}
+
+/* Table cells and flex containers need special handling */
+body[data-auth="admin"] th.admin-only,
+body[data-auth="admin"] td.admin-only {
+    display: table-cell !important;
+}
+
+body[data-auth="admin"] .admin-only.flex {
+    display: flex !important;
+}
+
+/* Navigation Updates */
+nav {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.view-controls {
+    margin-right: auto;
+}
+
+.auth-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Button Styles */
+.auth-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#loginBtn {
+    background: var(--bg-form);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+#loginBtn:hover {
+    background: var(--bg-main);
+}
+
+#logoutBtn {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+#logoutBtn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.action-btn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+/* Auth Section */
+.auth-section {
+    max-width: 400px;
+    margin: 40px auto;
+    padding: 20px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Admin Add Form Section */
+#adminAddSection {
+    margin-bottom: 30px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#adminAddSection h2 {
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+/* Table Actions Column */
+.action-cell {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.edit-btn, .delete-btn {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+
+.edit-btn {
+    background: #2196F3;
+}
+
+.edit-btn:hover {
+    background: #1976D2;
+}
+
+.delete-btn {
+    background: #f44336;
+}
+
+.delete-btn:hover {
+    background: #d32f2f;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -874,4 +1036,46 @@ td {
 
 .error-message button:hover {
     background: rgba(244, 67, 54, 0.1);
+}
+
+/* Adjust the controls-wrapper to accommodate the view switcher */
+.controls-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.search-section input {
+    flex: 1;
+}
+
+/* Ensure table header alignment with new admin column */
+th:last-child {
+    width: 120px;
+}
+
+/* Grid view adjustments for admin actions */
+.vinyl-card .admin-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.vinyl-card:hover .admin-actions {
+    opacity: 1;
+}
+
+/* Progress container z-index adjustment */
+.progress-container {
+    z-index: 1100;
+}
+
+/* Modal z-index adjustment */
+.modal-overlay {
+    z-index: 1000;
 }
