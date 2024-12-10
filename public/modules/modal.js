@@ -165,6 +165,23 @@ export class ModalManager {
 
         this.loadTracks(vinyl, tracksContainer);
         modal.classList.remove('hidden');
+
+        // Add admin actions if user is authenticated
+        const isAdmin = this.app.auth.isAuthenticated();
+        const adminActions = modal.querySelector('.admin-actions');
+        if (adminActions) {
+            adminActions.remove(); // Remove existing actions if present
+        }
+        
+        if (isAdmin) {
+            const actionsHtml = `
+                <div class="admin-actions">
+                    <button onclick="app.admin.editVinyl(${vinyl.id})" class="edit-btn">Edit</button>
+                    <button onclick="app.admin.deleteVinyl(${vinyl.id})" class="delete-btn">Delete</button>
+                </div>
+            `;
+            modal.querySelector('.album-details').insertAdjacentHTML('beforeend', actionsHtml);
+        }
     }
 
     async loadTracks(vinyl, container) {

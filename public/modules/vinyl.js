@@ -49,19 +49,10 @@ export class VinylManager {
                 <td>${this.escapeHtml(vinyl.title)}</td>
                 <td class="notes-cell">${this.escapeHtml(vinyl.notes || '')}</td>
                 <td>${vinyl.dupe ? '<span class="dupe-badge">Duplicate</span>' : ''}</td>
-                ${isAdmin ? `
-                    <td class="action-cell">
-                        <button onclick="app.admin.editVinyl(${vinyl.id})" class="edit-btn">Edit</button>
-                        <button onclick="app.admin.deleteVinyl(${vinyl.id})" class="delete-btn">Delete</button>
-                    </td>
-                ` : ''}
             `;
             
-            row.addEventListener('click', (e) => {
-                // Don't show modal if clicking action buttons
-                if (!e.target.closest('.action-cell')) {
-                    this.app.modal.showAlbumModal(vinyl);
-                }
+            row.addEventListener('click', () => {
+                this.app.modal.showAlbumModal(vinyl);
             });
             
             tbody.appendChild(row);
@@ -132,9 +123,13 @@ export class VinylManager {
                 throw new Error('Invalid vinyl record ID');
             }
 
-            const response = await fetch(`/api/vinyl/${vinyl.id}/tracks`, {
-                headers: this.app.auth.getAuthHeaders()
-            });
+            const endpoint = this.app.auth.isAuthenticated() ? 
+                `/api/vinyl/${vinyl.id}/tracks` : 
+                `/api/public/vinyl/${vinyl.id}/tracks`;
+            
+            const headers = this.app.auth.getAuthHeaders();
+            
+            const response = await fetch(endpoint, { headers });
             
             if (!response.ok) throw new Error('Failed to fetch tracks');
             
@@ -142,7 +137,7 @@ export class VinylManager {
             return data.tracks || [];
         } catch (error) {
             console.error('Error fetching tracks:', error);
-            throw error; // Re-throw to handle in the modal
+            throw error;
         }
     }
 

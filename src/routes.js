@@ -39,23 +39,58 @@ router.post('/api/vinyl', authenticateToken, async (req, res) => {
     const { artist_name, title, identifier, notes, dupe, weight } = req.body;
     
     try {
-        // Fetch artwork URL from Discogs
-        const artworkUrl = await discogsClient.searchRelease(artist_name, title);
+        let artworkUrl = null;
         
-        const result = db.prepare(`
+        // Try to fetch artwork URL from Discogs, but don't fail if it errors
+        try {
+            artworkUrl = await discogsClient.searchRelease(artist_name, title);
+        } catch (artworkError) {
+            console.error('Error fetching artwork:', artworkError);
+            // Continue without artwork
+        }
+        
+        // Log the values being inserted for debugging
+        console.log('Inserting values:', {
+            user_id: req.user.id,
+            artist_name,
+            title,
+            identifier,
+            notes,
+            weight,
+            dupe: dupe ? 1 : 0,
+            artwork_url: artworkUrl
+        });
+        
+        const stmt = db.prepare(`
             INSERT INTO vinyls (
                 user_id, artist_name, title, identifier, 
                 notes, weight, dupe, artwork_url
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(req.user.id, artist_name, title, identifier, notes, weight, dupe ? 1 : 0, artworkUrl);
+        `);
+        
+        const result = stmt.run(
+            req.user.id,
+            artist_name,
+            title,
+            identifier || null,  // Handle undefined/empty identifier
+            notes || null,       // Handle undefined/empty notes
+            weight || null,      // Handle undefined/empty weight
+            dupe ? 1 : 0,
+            artworkUrl
+        );
         
         res.status(201).json({ 
             id: result.lastInsertRowid,
             artwork_url: artworkUrl 
         });
     } catch (error) {
-        console.error('Error adding vinyl:', error);
-        res.status(500).json({ error: 'Failed to add vinyl record' });
+        console.error('Detailed error:', {
+            message: error.message,
+            stack: error.stack,
+            body: req.body,
+            params: req.params
+        });
+        res.status(500).json({ error: 'Failed to add vinyl record', details: error.message });
     }
 });
 
@@ -242,7 +277,7 @@ router.post('/api/vinyl/import', authenticateToken, async (req, res) => {
 router.get('/api/public/vinyl', (req, res) => {
     try {
         const vinyls = db.prepare(
-            'SELECT artist_name, title, identifier, weight, notes, dupe, artwork_url FROM vinyls ORDER BY artist_name, title'
+            'SELECT id, artist_name, title, identifier, weight, notes, dupe, artwork_url FROM vinyls ORDER BY artist_name, title'
         ).all();
         res.json(vinyls);
     } catch (error) {
@@ -368,6 +403,28 @@ router.get('/api/vinyl/:id/tracks', async (req, res) => {
         res.json({ tracks: trackInfo.tracks || [] });
     } catch (error) {
         console.error('[Error] Error fetching tracks:', error);
+        res.status(500).json({ error: 'Failed to fetch tracks' });
+    }
+});
+
+// GET public tracks for a vinyl record
+router.get('/api/public/vinyl/:id/tracks', (req, res) => {
+    try {
+        const vinyl = db.prepare('SELECT tracks FROM vinyls WHERE id = ?').get(req.params.id);
+        
+        if (!vinyl) {
+            return res.status(404).json({ error: 'Vinyl not found' });
+        }
+
+        // Return only cached tracks for public access
+        if (vinyl.tracks) {
+            return res.json({ tracks: JSON.parse(vinyl.tracks) });
+        }
+
+        // If no cached tracks, return empty array
+        res.json({ tracks: [] });
+    } catch (error) {
+        console.error('Error fetching public tracks:', error);
         res.status(500).json({ error: 'Failed to fetch tracks' });
     }
 });
