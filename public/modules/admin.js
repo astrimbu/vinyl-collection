@@ -236,34 +236,55 @@ export class AdminManager {
     }
 
     async pollArtworkProgress(totalRecords) {
-        const pollInterval = setInterval(async () => {
-            try {
-                const response = await fetch('/api/vinyl/update-artwork/progress', {
-                    headers: this.app.auth.getAuthHeaders()
-                });
-                const data = await response.json();
-                
-                const processedCount = data.processed;
-                this.app.ui.updateProgressBar(processedCount, totalRecords);
-                
-                if (data.results) {
-                    this.updateResults = data.results;
-                    this.showProgressSummary();
-                }
-
-                if (data.completed || processedCount >= totalRecords) {
-                    clearInterval(pollInterval);
-                    this.updateArtworkBtn.disabled = false;
-                    document.getElementById('progressSummary').classList.remove('hidden');
-                    await this.app.vinyl.loadVinyls();
-                }
-            } catch (error) {
-                console.error('Error checking progress:', error);
-                clearInterval(pollInterval);
-                this.app.ui.showError('Failed to check progress');
-                this.updateArtworkBtn.disabled = false;
+        try {
+            const response = await fetch('/api/vinyl/update-artwork/progress', {
+                headers: this.app.auth.getAuthHeaders()
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
             }
-        }, 2000);
+            
+            // Update progress UI
+            const progressCount = document.getElementById('progressCount');
+            const progressFill = document.querySelector('.progress-fill');
+            const totalCount = document.getElementById('totalCount');
+            
+            // Set total count
+            totalCount.textContent = totalRecords;
+            
+            if (data.currentRecord) {
+                const currentCount = data.results.success.length + data.results.failed.length;
+                
+                if (data.currentRecord.completed) {
+                    // Process is complete
+                    progressCount.textContent = totalRecords;
+                    progressFill.style.width = '100%';
+                    
+                    // Update the results
+                    this.updateResults = data.results;
+                    
+                    // Show the summary
+                    document.getElementById('progressSummary').classList.remove('hidden');
+                    this.showProgressSummary();
+                    this.updateArtworkBtn.disabled = false;
+                    return;
+                }
+                
+                progressCount.textContent = currentCount;
+                progressFill.style.width = `${(currentCount / totalRecords) * 100}%`;
+                
+                // Continue polling
+                setTimeout(() => this.pollArtworkProgress(totalRecords), 500);
+            }
+        } catch (error) {
+            console.error('Error polling progress:', error);
+            this.app.ui.showError('Error tracking progress');
+            this.updateArtworkBtn.disabled = false;
+            this.hideProgress();
+        }
     }
 
     showProgressSummary() {

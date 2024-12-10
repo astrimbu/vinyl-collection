@@ -295,8 +295,14 @@ router.post('/api/vinyl/update-artwork', authenticateToken, async (req, res) => 
         };
 
         // Get all records without artwork
-        const records = db.prepare('SELECT id, artist_name, title FROM vinyls WHERE artwork_url IS NULL AND user_id = ?')
-            .all(req.user.id);
+        const records = db.prepare(`
+            SELECT id, artist_name, title 
+            FROM vinyls 
+            WHERE (artwork_url IS NULL 
+                   OR artwork_url LIKE '%spacer.gif'
+                   OR artwork_url = '') 
+            AND user_id = ?
+        `).all(req.user.id);
         
         if (records.length === 0) {
             return res.json({ 
@@ -340,33 +346,28 @@ router.post('/api/vinyl/update-artwork', authenticateToken, async (req, res) => 
             }
         }
 
-        global.currentProcessingRecord = null;
-        console.log(`Artwork update complete! Processed ${processed} records`);
+        console.log('Artwork update complete!');
+        console.log(`Successfully updated: ${global.updateResults.success.length}`);
+        console.log(`Failed to update: ${global.updateResults.failed.length}`);
         
+        // Mark completion
+        global.currentProcessingRecord = { 
+            completed: true,
+            totalProcessed: processed,
+            totalRecords: records.length
+        };
     } catch (error) {
         console.error('Error in artwork update:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 router.get('/api/vinyl/update-artwork/progress', authenticateToken, (req, res) => {
     try {
-        const total = db.prepare('SELECT COUNT(*) as count FROM vinyls WHERE artwork_url IS NULL AND user_id = ?')
-            .get(req.user.id).count;
-            
-        const processed = db.prepare(`
-            SELECT COUNT(*) as count 
-            FROM vinyls 
-            WHERE user_id = ? 
-            AND artwork_url IS NULL 
-            AND last_artwork_check IS NOT NULL
-        `).get(req.user.id).count;
-        
         res.json({
-            total,
-            processed,
-            completed: total === 0,
             currentRecord: global.currentProcessingRecord,
-            results: global.updateResults
+            results: global.updateResults,
+            completed: global.currentProcessingRecord?.completed || false
         });
     } catch (error) {
         console.error('Error checking progress:', error);

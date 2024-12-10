@@ -108,12 +108,33 @@ class DiscogsClient {
             const data = await response.json();
             console.log(`Found ${data.results ? data.results.length : 0} results`);
             
-            if (data.results && data.results[0]) {
-                console.log(`Selected result: ${data.results[0].title}`);
-                return {
-                    thumb: data.results[0].thumb,
-                    cover: data.results[0].cover_image
-                };
+            if (data.results && data.results.length > 0) {
+                // Try each result until we find valid artwork
+                for (let i = 0; i < Math.min(data.results.length, 5); i++) { // Limit to first 5 results
+                    const result = data.results[i];
+                    console.log(`Trying result ${i + 1}: ${result.title}`);
+                    
+                    // Validate artwork URLs
+                    const cover = result.cover_image;
+                    const thumb = result.thumb;
+                    
+                    // Check if URLs are valid and not spacer images
+                    if (cover && 
+                        !cover.includes('spacer.gif') && 
+                        !cover.includes('spacer.png') &&
+                        cover !== 'https://st.discogs.com/') {
+                        console.log(`✓ Found valid artwork in result ${i + 1}`);
+                        return {
+                            thumb: thumb && !thumb.includes('spacer') ? thumb : null,
+                            cover: cover
+                        };
+                    } else {
+                        console.log(`✗ Invalid artwork URL in result ${i + 1}`);
+                    }
+                }
+                
+                console.log(`✗ No valid artwork found in first 5 results`);
+                return null;
             }
             
             return null;

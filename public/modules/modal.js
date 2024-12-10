@@ -151,7 +151,7 @@ export class ModalManager {
         const metadata = modal.querySelector('.album-metadata');
         const tracksContainer = modal.querySelector('.tracks-container');
 
-        artwork.innerHTML = vinyl.artwork_url ? 
+        artwork.innerHTML = (vinyl.artwork_url && !vinyl.artwork_url.includes('spacer.gif')) ? 
             `<img src="${this.app.vinyl.escapeHtml(vinyl.artwork_url)}" alt="Album artwork">` : 
             '<div class="no-artwork">No Image</div>';
         artist.textContent = vinyl.artist_name;

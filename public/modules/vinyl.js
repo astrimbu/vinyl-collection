@@ -52,7 +52,7 @@ export class VinylManager {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>
-                    ${vinyl.artwork_url ? 
+                    ${(vinyl.artwork_url && !vinyl.artwork_url.includes('spacer.gif')) ? 
                         `<img src="${this.escapeHtml(vinyl.artwork_url)}" alt="Album artwork" class="album-thumb">` : 
                         '<div class="no-artwork">No Image</div>'
                     }
@@ -80,7 +80,7 @@ export class VinylManager {
             card.className = 'vinyl-card';
             card.innerHTML = `
                 <div class="artwork">
-                    ${vinyl.artwork_url ? 
+                    ${(vinyl.artwork_url && !vinyl.artwork_url.includes('spacer.gif')) ? 
                         `<img src="${this.escapeHtml(vinyl.artwork_url)}" alt="Album artwork">` : 
                         '<div class="no-artwork">No Image</div>'
                     }
