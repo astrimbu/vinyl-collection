@@ -878,6 +878,7 @@ td {
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: transform 0.2s ease;
+    cursor: pointer;
 }
 
 .vinyl-card:hover {
@@ -1185,4 +1186,8 @@ th:last-child {
     margin: 5px 0;
     white-space: pre-wrap;
     font-family: monospace;
+}
+
+#vinylTableBody tr {
+    cursor: pointer;
 }
