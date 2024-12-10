@@ -11,18 +11,6 @@
     <header>
         <h1>Vinyl Collection</h1>
         <nav>
-            <!-- View controls (visible to all) -->
-            <div class="view-controls">
-                <div class="view-switcher">
-                    <button class="view-btn active" data-view="table">
-                        <span class="material-icons">table_rows</span>
-                    </button>
-                    <button class="view-btn" data-view="grid">
-                        <span class="material-icons">grid_view</span>
-                    </button>
-                </div>
-            </div>
-
             <!-- Auth controls -->
             <div class="auth-controls">
                 <button id="loginBtn" class="auth-btn guest-only">Login</button>
@@ -83,13 +71,19 @@
 
         <!-- Search Section -->
         <section class="search-section">
-            <div class="controls-wrapper">
-                <input type="text" id="searchInput" placeholder="Search by artist, title, notes, or ID...">
+            <input type="text" id="searchInput" placeholder="Search by artist, title, notes, or ID...">
+            <div class="view-switcher">
+                <button class="view-btn" data-view="table">
+                    <span class="material-icons">table_rows</span>
+                </button>
+                <button class="view-btn active" data-view="grid">
+                    <span class="material-icons">grid_view</span>
+                </button>
             </div>
         </section>
 
         <!-- Vinyl Display Sections -->
-        <section class="vinyl-list table-view" id="vinylList">
+        <section class="vinyl-list table-view hidden" id="vinylList">
             <table id="vinylTable">
                 <thead>
                     <tr>
@@ -105,7 +99,7 @@
             </table>
         </section>
 
-        <section class="vinyl-grid hidden" id="vinylGrid">
+        <section class="vinyl-grid" id="vinylGrid">
             <!-- Grid items will be populated via JavaScript -->
         </section>
     </main>
