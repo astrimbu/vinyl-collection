@@ -60,11 +60,6 @@ export class UIManager {
             // Handle alphanumeric keys for quick search
             if (e.key.length === 1 || e.key === 'Backspace') {
                 this.searchInput.focus();
-                if (e.key === 'Backspace') {
-                    this.searchInput.value = this.searchInput.value.slice(0, -1);
-                } else {
-                    this.searchInput.value += e.key;
-                }
                 
                 // Trigger search
                 this.app.search.performSearch(this.searchInput.value);

@@ -70,9 +70,11 @@ export class SearchManager {
             const newValue = this.searchInput.value.slice(0, -1);
             this.setSearchAndFocus(newValue, false);
         } else if (key.length === 1) {
-            // Append character
-            const newValue = this.searchInput.value + key;
-            this.setSearchAndFocus(newValue, false);
+            // Only append character if the input is not focused
+            if (document.activeElement !== this.searchInput) {
+                const newValue = this.searchInput.value + key;
+                this.setSearchAndFocus(newValue, false);
+            }
         }
     }
 
