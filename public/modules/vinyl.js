@@ -3,6 +3,18 @@ export class VinylManager {
         this.app = app;
         this.collection = [];
         this.currentSort = { field: 'artist_name', ascending: true };
+        this.initializeSortHandlers();
+    }
+
+    initializeSortHandlers() {
+        const headers = document.querySelectorAll('th[data-sort]');
+        headers.forEach(header => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => {
+                const field = header.dataset.sort;
+                this.sortVinyls(field);
+            });
+        });
     }
 
     async loadVinyls() {
