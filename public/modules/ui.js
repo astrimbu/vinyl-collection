@@ -6,6 +6,7 @@ export class UIManager {
         this.vinylList = document.getElementById('vinylList');
         this.vinylGrid = document.getElementById('vinylGrid');
         this.errorTimeout = null;
+        this.notificationContainer = document.getElementById('notificationContainer');
     }
 
     initializeViewSwitcher() {
@@ -99,29 +100,29 @@ export class UIManager {
         }
     }
 
-    showError(message, duration = 5000) {
-        // Clear any existing error timeout
-        if (this.errorTimeout) {
-            clearTimeout(this.errorTimeout);
-        }
+    showNotification(message, type = 'success', duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
 
-        // Create or get error container
-        let errorContainer = document.getElementById('errorContainer');
-        if (!errorContainer) {
-            errorContainer = document.createElement('div');
-            errorContainer.id = 'errorContainer';
-            errorContainer.className = 'error-container';
-            document.body.appendChild(errorContainer);
-        }
+        this.notificationContainer.appendChild(notification);
 
-        // Show error message
-        errorContainer.textContent = message;
-        errorContainer.classList.add('visible');
+        // Trigger animation
+        setTimeout(() => notification.classList.add('visible'), 10);
 
-        // Hide after duration
-        this.errorTimeout = setTimeout(() => {
-            errorContainer.classList.remove('visible');
+        // Remove after duration
+        setTimeout(() => {
+            notification.classList.remove('visible');
+            setTimeout(() => notification.remove(), 300); // Match transition duration
         }, duration);
+    }
+
+    showError(message, duration = 3000) {
+        this.showNotification(message, 'error', duration);
+    }
+
+    showSuccess(message, duration = 3000) {
+        this.showNotification(message, 'success', duration);
     }
 
     showLoading(message = 'Loading...') {

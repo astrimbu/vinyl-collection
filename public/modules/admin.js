@@ -56,7 +56,7 @@ export class AdminManager {
 
             this.vinylForm.reset();
             await this.app.vinyl.loadVinyls();
-            this.app.ui.showError('Record added successfully', 2000);
+            this.app.ui.showSuccess('Record added successfully');
         } catch (error) {
             console.error('Error adding vinyl:', error);
             this.app.ui.showError('Failed to add vinyl record');
@@ -124,7 +124,7 @@ export class AdminManager {
 
                 await this.app.vinyl.loadVinyls();
                 closeModal();
-                this.app.ui.showError('Record updated successfully', 2000);
+                this.app.ui.showSuccess('Record updated successfully');
             } catch (error) {
                 console.error('Error updating vinyl:', error);
                 this.app.ui.showError('Failed to update vinyl record');
@@ -148,7 +148,7 @@ export class AdminManager {
             }
 
             await this.app.vinyl.loadVinyls();
-            this.app.ui.showError('Record deleted successfully', 2000);
+            this.app.ui.showSuccess('Record deleted successfully');
         } catch (error) {
             console.error('Error deleting vinyl:', error);
             this.app.ui.showError('Failed to delete vinyl record');
@@ -180,7 +180,7 @@ export class AdminManager {
                     }
 
                     const result = await response.json();
-                    this.app.ui.showError(`Successfully imported ${result.count} records`, 3000);
+                    this.app.ui.showSuccess(`Successfully imported ${result.count} records`);
                     await this.app.vinyl.loadVinyls();
                 } catch (error) {
                     console.error('Import error:', error);
