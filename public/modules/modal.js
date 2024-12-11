@@ -20,69 +20,85 @@ export class ModalManager {
             <div class="tab-content" id="loginTab">
                 <form id="loginForm">
                     <div class="form-group">
-                        <label for="username">Username:</label>
+                        <label for="username">Username</label>
                         <input type="text" id="username" required>
                     </div>
                     <div class="form-group">
-                        <label for="password">Password:</label>
+                        <label for="password">Password</label>
                         <input type="password" id="password" required>
                     </div>
+                    <button type="submit" class="submit-btn">Log In</button>
                 </form>
             </div>
             <div class="tab-content hidden" id="registerTab">
                 <form id="registrationForm">
                     <div class="form-group">
-                        <label for="reg-username">Username:</label>
+                        <label for="reg-username">Username</label>
                         <input type="text" id="reg-username" required>
                     </div>
                     <div class="form-group">
-                        <label for="reg-email">Email:</label>
+                        <label for="reg-email">Email</label>
                         <input type="email" id="reg-email" required>
                     </div>
                     <div class="form-group">
-                        <label for="reg-password">Password:</label>
+                        <label for="reg-password">Password</label>
                         <input type="password" id="reg-password" required minlength="4">
                         <small>Password must be at least 4 characters long</small>
                     </div>
                     <div class="form-group">
-                        <label for="reg-password-confirm">Confirm Password:</label>
+                        <label for="reg-password-confirm">Confirm Password</label>
                         <input type="password" id="reg-password-confirm" required>
                     </div>
+                    <button type="submit" class="submit-btn">Create Account</button>
                 </form>
             </div>
         `;
 
-        this.showFormModal('Authentication', modalContent, async (closeModal) => {
-            const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+        this.showFormModal('Authentication', modalContent, null, false);
+
+        // Add form submission handlers
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             
-            if (activeTab === 'login') {
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
+            try {
+                await this.app.auth.login(username, password);
+                this.closeAllModals();
+            } catch (error) {
+                this.app.ui.showError('Login failed');
+            }
+        });
+
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const passwordConfirm = document.getElementById('reg-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                this.app.ui.showError('Passwords do not match');
+                return;
+            }
+
+            try {
+                await this.app.auth.register({ username, email, password });
+                // Clear the registration form
+                e.target.reset();
+                // Switch to login tab
+                document.querySelector('[data-tab="login"]').click();
+                // Show success message in the modal
+                const loginTab = document.getElementById('loginTab');
+                const successMsg = document.createElement('div');
+                successMsg.className = 'success-message';
+                successMsg.textContent = 'Registration successful! Please log in.';
+                loginTab.insertBefore(successMsg, loginTab.firstChild);
                 
-                try {
-                    await this.app.auth.login(username, password);
-                    closeModal();
-                } catch (error) {
-                    this.app.ui.showError('Login failed');
-                }
-            } else {
-                const username = document.getElementById('reg-username').value;
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
-                const passwordConfirm = document.getElementById('reg-password-confirm').value;
-
-                if (password !== passwordConfirm) {
-                    this.app.ui.showError('Passwords do not match');
-                    return;
-                }
-
-                try {
-                    await this.app.auth.register({ username, email, password });
-                    this.app.ui.showError('Registration successful! Please log in.', 2000);
-                    document.querySelector('[data-tab="login"]').click();
-                } catch (error) {
-                    this.app.ui.showError('Registration failed');
-                }
+                // Remove the message after 3 seconds
+                setTimeout(() => successMsg.remove(), 3000);
+            } catch (error) {
+                this.app.ui.showError('Registration failed');
             }
         });
 
@@ -98,7 +114,7 @@ export class ModalManager {
         });
     }
 
-    showFormModal(title, content, onSave) {
+    showFormModal(title, content, onSave, showButtons = true) {
         const modal = document.createElement('div');
         modal.className = 'modal-overlay';
         modal.innerHTML = `
@@ -128,6 +144,11 @@ export class ModalManager {
         modal.querySelector('.close-button').addEventListener('click', closeModal);
         modal.querySelector('.cancel-btn').addEventListener('click', closeModal);
         modal.querySelector('.save-btn').addEventListener('click', () => onSave(closeModal));
+
+        const buttonSection = modal.querySelector('.modal-buttons');
+        if (!showButtons) {
+            buttonSection.classList.add('hidden');
+        }
 
         return modal;
     }
