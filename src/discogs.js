@@ -92,15 +92,13 @@ class DiscogsClient {
         }
     
         try {
-            // Clean up the search terms
+            // Less aggressive cleaning - only remove problematic URL characters
             const cleanArtist = artist
-                .replace(/with/i, '')  // Remove "with" statements
-                .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+                .replace(/[&+]/g, '') // Remove problematic URL characters
                 .trim();
-                
             const cleanTitle = title
-                .replace(/,.*$/, '')  // Remove anything after a comma
-                .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+                .replace(/,.*$/, '') // Remove anything after a comma
+                .replace(/[&+]/g, '') // Remove problematic URL characters
                 .trim();
     
             const url = new URL(`${this.baseUrl}/database/search`);
