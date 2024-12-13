@@ -15,11 +15,10 @@ class DiscogsClient {
         this.userAgent = 'VinylCollectionManager/1.0';
         this.token = process.env.DISCOGS_TOKEN;
         
-        // Rate limiting properties
+        // Replace rate limiting properties with a request history
+        this.requestHistory = [];
         this.requestQueue = [];
         this.processing = false;
-        this.requestsThisMinute = 0;
-        this.minuteStart = Date.now();
     }
 
     async searchRelease(artist, title) {
@@ -31,22 +30,25 @@ class DiscogsClient {
     }
 
     async processQueue() {
+        // Discogs API rate limits to 60 requests per minute (rolling window)
         if (this.processing) return;
         this.processing = true;
 
         while (this.requestQueue.length > 0) {
-            // Check rate limit
+            // Clean up old requests from history (older than 60 seconds)
             const now = Date.now();
-            if (now - this.minuteStart >= 60000) {
-                // Reset counter for new minute
-                this.requestsThisMinute = 0;
-                this.minuteStart = now;
-            }
+            this.requestHistory = this.requestHistory.filter(
+                timestamp => now - timestamp < 60000
+            );
 
-            if (this.requestsThisMinute >= 55) { // Buffer of 5 requests
-                // Wait until next minute
-                const waitTime = 60000 - (now - this.minuteStart);
-                console.log(`Rate limit reached. Waiting ${waitTime}ms...`);
+            // Check if we're at the rate limit
+            if (this.requestHistory.length >= 60) {
+                // Get the oldest request in our window
+                const oldestRequest = this.requestHistory[0];
+                // Calculate how long until it drops out of our 60-second window
+                const waitTime = 60000 - (now - oldestRequest);
+                
+                console.log(`Rate limit approaching, waiting ${waitTime}ms...`);
                 await new Promise(resolve => setTimeout(resolve, waitTime));
                 continue;
             }
@@ -54,20 +56,37 @@ class DiscogsClient {
             // Process next request
             const request = this.requestQueue[0];
             try {
-                const result = await this._makeRequest(request.artist, request.title);
+                let result;
+                if (request.type === 'tracks') {
+                    result = await this._fetchTracks(request.artist, request.title);
+                } else {
+                    result = await this._makeRequest(request.artist, request.title);
+                }
+                
+                // Record this request timestamp
+                this.requestHistory.push(Date.now());
+                
                 request.resolve(result);
+                this.requestQueue.shift();
             } catch (error) {
+                if (error.message.includes('rate limit')) {
+                    // Don't remove the request from queue, wait and try again
+                    console.log('Rate limit hit, enforcing cooldown...');
+                    // Wait for the oldest request to drop out of the window
+                    const waitTime = 60000 - (now - this.requestHistory[0]);
+                    await new Promise(resolve => setTimeout(resolve, waitTime + 1000)); // Add 1 second buffer
+                    continue;
+                }
+                // For other errors, reject and remove from queue
                 request.reject(error);
+                this.requestQueue.shift();
             }
-            
-            this.requestQueue.shift();
-            this.requestsThisMinute++;
         }
 
         this.processing = false;
     }
 
-    async _makeRequest(artist, title) {
+    async _makeRequest(artist, title, retryCount = 0) {
         if (!fetch) {
             fetch = (await import('node-fetch')).default;
         }
@@ -98,6 +117,22 @@ class DiscogsClient {
                     'Authorization': `Discogs token=${this.token}`
                 }
             });
+    
+            // Handle rate limit specifically
+            if (response.status === 429) {
+                if (retryCount >= 3) {
+                    throw new Error('Max retry attempts reached for rate limit');
+                }
+                
+                // Get retry-after header or default to 60 seconds
+                const retryAfter = parseInt(response.headers.get('retry-after')) || 60;
+                console.log(`Rate limit hit, waiting ${retryAfter} seconds before retry...`);
+                
+                await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+                
+                // Retry the request
+                return this._makeRequest(artist, title, retryCount + 1);
+            }
     
             if (!response.ok) {
                 const errorText = await response.text();
@@ -139,6 +174,9 @@ class DiscogsClient {
             
             return null;
         } catch (error) {
+            if (error.message.includes('rate limit')) {
+                throw error; // Re-throw rate limit errors to be handled by processQueue
+            }
             console.error('Discogs API error:', error);
             // Don't throw the error, just return null and continue
             return null;
@@ -156,46 +194,6 @@ class DiscogsClient {
             });
             this.processQueue();
         });
-    }
-
-    async processQueue() {
-        if (this.processing) return;
-        this.processing = true;
-
-        while (this.requestQueue.length > 0) {
-            // Rate limit checking (same as before)
-            const now = Date.now();
-            if (now - this.minuteStart >= 60000) {
-                this.requestsThisMinute = 0;
-                this.minuteStart = now;
-            }
-
-            if (this.requestsThisMinute >= 55) {
-                const waitTime = 60000 - (now - this.minuteStart);
-                console.log(`Rate limit reached. Waiting ${waitTime}ms...`);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
-                continue;
-            }
-
-            // Process next request
-            const request = this.requestQueue[0];
-            try {
-                let result;
-                if (request.type === 'tracks') {
-                    result = await this._fetchTracks(request.artist, request.title);
-                } else {
-                    result = await this._makeRequest(request.artist, request.title);
-                }
-                request.resolve(result);
-            } catch (error) {
-                request.reject(error);
-            }
-            
-            this.requestQueue.shift();
-            this.requestsThisMinute++;
-        }
-
-        this.processing = false;
     }
 
     async _fetchTracks(artist, title) {

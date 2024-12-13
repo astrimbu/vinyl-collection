@@ -95,8 +95,8 @@ export class ModalManager {
                 successMsg.textContent = 'Registration successful! Please log in.';
                 loginTab.insertBefore(successMsg, loginTab.firstChild);
                 
-                // Remove the message after 3 seconds
-                setTimeout(() => successMsg.remove(), 3000);
+                // Remove the message after 30 seconds
+                setTimeout(() => successMsg.remove(), 30000);
             } catch (error) {
                 this.app.ui.showError('Registration failed');
             }

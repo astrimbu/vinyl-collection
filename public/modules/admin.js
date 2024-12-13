@@ -159,43 +159,40 @@ export class AdminManager {
         const file = event.target.files[0];
         if (!file) return;
 
+        this.app.ui.showLoading('Importing records (this can take 1 minute per 60 records)...');
+        const reader = new FileReader();
+        
         try {
-            this.app.ui.showLoading('Importing records...');
-            const reader = new FileReader();
-            
-            reader.onload = async (e) => {
-                try {
-                    const csvContent = e.target.result;
-                    const response = await fetch('/api/vinyl/import', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'text/csv',
-                            ...this.app.auth.getAuthHeaders()
-                        },
-                        body: csvContent
-                    });
+            // Convert FileReader to Promise
+            const csvContent = await new Promise((resolve, reject) => {
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsText(file);
+            });
 
-                    if (!response.ok) {
-                        throw new Error('Import failed');
-                    }
+            const response = await fetch('/api/vinyl/import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/csv',
+                    ...this.app.auth.getAuthHeaders()
+                },
+                body: csvContent
+            });
 
-                    const result = await response.json();
-                    this.app.ui.showSuccess(`Successfully imported ${result.count} records`);
-                    await this.app.vinyl.loadVinyls();
-                } catch (error) {
-                    console.error('Import error:', error);
-                    this.app.ui.showError('Failed to import records');
-                } finally {
-                    this.app.ui.hideLoading();
-                    event.target.value = ''; // Reset file input
-                }
-            };
+            if (!response.ok) {
+                throw new Error('Import failed');
+            }
 
-            reader.readAsText(file);
+            const result = await response.json();
+            await this.app.vinyl.loadVinyls();
+            this.app.ui.hideLoading(); // Ensure loading is hidden before showing success
+            this.app.ui.showSuccess(`Successfully imported ${result.count} records`);
         } catch (error) {
             console.error('Import error:', error);
             this.app.ui.showError('Failed to import records');
-            this.app.ui.hideLoading();
+        } finally {
+            this.app.ui.hideLoading(); // Ensure loading is always hidden
+            event.target.value = ''; // Reset file input
         }
     }
 

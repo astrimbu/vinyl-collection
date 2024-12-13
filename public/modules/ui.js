@@ -136,6 +136,8 @@ export class UIManager {
                 <div class="loading-message">${message}</div>
             `;
             document.body.appendChild(loadingContainer);
+        } else {
+            loadingContainer.querySelector('.loading-message').textContent = message;
         }
         loadingContainer.classList.add('visible');
     }
@@ -144,6 +146,10 @@ export class UIManager {
         const loadingContainer = document.getElementById('loadingContainer');
         if (loadingContainer) {
             loadingContainer.classList.remove('visible');
+            // Remove the element after animation
+            setTimeout(() => {
+                loadingContainer.remove();
+            }, 300); // Match your CSS transition duration
         }
     }
 
