@@ -31,6 +31,7 @@ db.exec(`
         artwork_url TEXT,
         last_artwork_check TIMESTAMP,
         tracks TEXT,
+        discogs_uri TEXT,
         added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id)
     );

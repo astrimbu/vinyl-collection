@@ -40,10 +40,15 @@ router.post('/api/vinyl', authenticateToken, async (req, res) => {
     
     try {
         let artworkUrl = null;
+        let discogsUri = null;
         
-        // Try to fetch artwork URL from Discogs, but don't fail if it errors
+        // Try to fetch artwork URL from Discogs
         try {
-            artworkUrl = await discogsClient.searchRelease(artist_name, title);
+            const discogsData = await discogsClient.searchRelease(artist_name, title);
+            if (discogsData) {
+                artworkUrl = discogsData.cover;
+                discogsUri = `release/${discogsData.releaseId}`;
+            }
         } catch (artworkError) {
             console.error('Error fetching artwork:', artworkError);
             // Continue without artwork
@@ -64,24 +69,26 @@ router.post('/api/vinyl', authenticateToken, async (req, res) => {
         const stmt = db.prepare(`
             INSERT INTO vinyls (
                 user_id, artist_name, title, identifier, 
-                notes, weight, dupe, artwork_url
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                notes, weight, dupe, artwork_url, discogs_uri
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         
         const result = stmt.run(
             req.user.id,
             artist_name,
             title,
-            identifier || null,  // Handle undefined/empty identifier
-            notes || null,       // Handle undefined/empty notes
-            weight || null,      // Handle undefined/empty weight
+            identifier || null,
+            notes || null,
+            weight || null,
             dupe ? 1 : 0,
-            artworkUrl
+            artworkUrl,
+            discogsUri
         );
         
         res.status(201).json({ 
             id: result.lastInsertRowid,
-            artwork_url: artworkUrl 
+            artwork_url: artworkUrl,
+            discogs_uri: discogsUri
         });
     } catch (error) {
         console.error('Detailed error:', {
@@ -232,8 +239,8 @@ router.post('/api/vinyl/import', authenticateToken, async (req, res) => {
                 const stmt = db.prepare(`
                     INSERT INTO vinyls (
                         user_id, artist_name, title, identifier, 
-                        notes, weight, dupe, artwork_url
-                    ) VALUES (?, @artist_name, @title, @identifier, @notes, @weight, @dupe, @artwork_url)
+                        notes, weight, dupe, artwork_url, discogs_uri
+                    ) VALUES (?, @artist_name, @title, @identifier, @notes, @weight, @dupe, @artwork_url, @discogs_uri)
                 `);
 
                 // Use transaction for bulk insert
@@ -244,6 +251,7 @@ router.post('/api/vinyl/import', authenticateToken, async (req, res) => {
                             // Fetch artwork URL from Discogs
                             const artwork = await discogsClient.searchRelease(vinyl.artist_name, vinyl.title);
                             vinyl.artwork_url = artwork ? artwork.cover : null;
+                            vinyl.discogs_uri = artwork ? `release/${artwork.releaseId}` : null;
                             
                             stmt.run(req.user.id, vinyl);
                             count++;
@@ -384,17 +392,17 @@ router.get('/api/vinyl/:id/tracks', async (req, res) => {
             return res.status(404).json({ error: 'Vinyl not found' });
         }
 
-        // If we already have tracks stored, return them
         if (vinyl.tracks) {
             console.log(`[DB] Retrieved cached tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
             return res.json({ tracks: JSON.parse(vinyl.tracks) });
         }
 
-        // Otherwise fetch from Discogs
-        console.log(`[Discogs] Fetching tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
-        const trackInfo = await discogsClient.getTrackList(vinyl.artist_name, vinyl.title);
+        // Extract releaseId from discogs_uri if available
+        const releaseId = vinyl.discogs_uri ? vinyl.discogs_uri.split('/')[1] : null;
         
-        // Store the tracks in the database
+        console.log(`[Discogs] Fetching tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
+        const trackInfo = await discogsClient.getTrackList(vinyl.artist_name, vinyl.title, releaseId);
+        
         if (trackInfo && trackInfo.tracks) {
             console.log(`[DB] Storing tracks for: ${vinyl.artist_name} - ${vinyl.title}`);
             db.prepare('UPDATE vinyls SET tracks = ? WHERE id = ?')

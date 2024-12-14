@@ -58,7 +58,7 @@ class DiscogsClient {
             try {
                 let result;
                 if (request.type === 'tracks') {
-                    result = await this._fetchTracks(request.artist, request.title);
+                    result = await this._fetchTracks(request.artist, request.title, request.releaseId);
                 } else {
                     result = await this._makeRequest(request.artist, request.title);
                 }
@@ -159,7 +159,8 @@ class DiscogsClient {
                         console.log(`✓ Found valid artwork in result ${i + 1}`);
                         return {
                             thumb: thumb && !thumb.includes('spacer') ? thumb : null,
-                            cover: cover
+                            cover: cover,
+                            releaseId: result.id
                         };
                     } else {
                         console.log(`✗ Invalid artwork URL in result ${i + 1}`);
@@ -181,12 +182,13 @@ class DiscogsClient {
         }
     }
 
-    async getTrackList(artist, title) {
+    async getTrackList(artist, title, releaseId = null) {
         return new Promise((resolve, reject) => {
             this.requestQueue.push({ 
                 type: 'tracks',
                 artist, 
-                title, 
+                title,
+                releaseId,
                 resolve, 
                 reject 
             });
@@ -194,83 +196,116 @@ class DiscogsClient {
         });
     }
 
-    async _fetchTracks(artist, title) {
+    async _fetchTracks(artist, title, releaseId = null) {
         if (!fetch) {
             fetch = (await import('node-fetch')).default;
         }
 
         try {
-            // First, search for the release
-            // Less aggressive cleaning - only remove special characters that would break the URL
-            const cleanArtist = artist
-                .replace(/[&+]/g, '') // Remove problematic URL characters
-                .trim();
-            const cleanTitle = title
-                .replace(/,.*$/, '') // Remove anything after a comma
-                .replace(/[&+]/g, '') // Remove problematic URL characters
-                .trim();
+            // If we have a releaseId, skip the search and go straight to fetching the release
+            if (releaseId) {
+                console.log(`[Discogs] Using stored release ID ${releaseId}`);
+                const releaseUrl = `${this.baseUrl}/releases/${releaseId}`;
+                const releaseResponse = await fetch(releaseUrl, {
+                    headers: {
+                        'User-Agent': this.userAgent,
+                        'Authorization': `Discogs token=${this.token}`
+                    }
+                });
 
-            console.log(`[Discogs] Searching for release: ${artist} - ${title}`);
-            console.log(`[Discogs] Using cleaned search terms: ${cleanArtist} - ${cleanTitle}`);
-
-            const searchUrl = new URL(`${this.baseUrl}/database/search`);
-            searchUrl.searchParams.append('type', 'release');
-            searchUrl.searchParams.append('artist', cleanArtist);
-            searchUrl.searchParams.append('release_title', cleanTitle);
-
-            // Log the final URL for debugging
-            console.log(`[Discogs] Search URL: ${searchUrl.toString()}`);
-
-            const searchResponse = await fetch(searchUrl.toString(), {
-                headers: {
-                    'User-Agent': this.userAgent,
-                    'Authorization': `Discogs token=${this.token}`
+                if (!releaseResponse.ok) {
+                    console.error(`[Discogs] Release API error: ${releaseResponse.status}`);
+                    throw new Error(`Discogs API error: ${releaseResponse.status}`);
                 }
-            });
 
-            if (!searchResponse.ok) {
-                console.error(`[Discogs] Search API error: ${searchResponse.status}`);
-                throw new Error(`Discogs API error: ${searchResponse.status}`);
-            }
-
-            const searchData = await searchResponse.json();
-            
-            if (!searchData.results?.[0]?.id) {
-                console.log(`[Discogs] No results found for: ${artist} - ${title}`);
-                return null;
-            }
-
-            console.log(`[Discogs] Found release ID ${searchData.results[0].id} for: ${artist} - ${title}`);
-
-            // Fetch the release details using the release ID
-            const releaseUrl = `${this.baseUrl}/releases/${searchData.results[0].id}`;
-            const releaseResponse = await fetch(releaseUrl, {
-                headers: {
-                    'User-Agent': this.userAgent,
-                    'Authorization': `Discogs token=${this.token}`
+                const releaseData = await releaseResponse.json();
+                console.log(`[Discogs] Successfully retrieved track data for: ${artist} - ${title}`);
+                
+                if (!releaseData.tracklist || releaseData.tracklist.length === 0) {
+                    return null;
                 }
-            });
+                
+                // Transform the tracklist data
+                const tracks = releaseData.tracklist.map(track => ({
+                    position: track.position,
+                    title: track.title,
+                    duration: track.duration
+                }));
 
-            if (!releaseResponse.ok) {
-                console.error(`[Discogs] Release API error: ${releaseResponse.status}`);
-                throw new Error(`Discogs API error: ${releaseResponse.status}`);
+                return { tracks };
+            } else {
+                // First, search for the release
+                // Less aggressive cleaning - only remove special characters that would break the URL
+                const cleanArtist = artist
+                    .replace(/[&+]/g, '') // Remove problematic URL characters
+                    .trim();
+                const cleanTitle = title
+                    .replace(/,.*$/, '') // Remove anything after a comma
+                    .replace(/[&+]/g, '') // Remove problematic URL characters
+                    .trim();
+
+                console.log(`[Discogs] Searching for release: ${artist} - ${title}`);
+                console.log(`[Discogs] Using cleaned search terms: ${cleanArtist} - ${cleanTitle}`);
+
+                const searchUrl = new URL(`${this.baseUrl}/database/search`);
+                searchUrl.searchParams.append('type', 'release');
+                searchUrl.searchParams.append('artist', cleanArtist);
+                searchUrl.searchParams.append('release_title', cleanTitle);
+
+                // Log the final URL for debugging
+                console.log(`[Discogs] Search URL: ${searchUrl.toString()}`);
+
+                const searchResponse = await fetch(searchUrl.toString(), {
+                    headers: {
+                        'User-Agent': this.userAgent,
+                        'Authorization': `Discogs token=${this.token}`
+                    }
+                });
+
+                if (!searchResponse.ok) {
+                    console.error(`[Discogs] Search API error: ${searchResponse.status}`);
+                    throw new Error(`Discogs API error: ${searchResponse.status}`);
+                }
+
+                const searchData = await searchResponse.json();
+                
+                if (!searchData.results?.[0]?.id) {
+                    console.log(`[Discogs] No results found for: ${artist} - ${title}`);
+                    return null;
+                }
+
+                console.log(`[Discogs] Found release ID ${searchData.results[0].id} for: ${artist} - ${title}`);
+
+                // Fetch the release details using the release ID
+                const releaseUrl = `${this.baseUrl}/releases/${searchData.results[0].id}`;
+                const releaseResponse = await fetch(releaseUrl, {
+                    headers: {
+                        'User-Agent': this.userAgent,
+                        'Authorization': `Discogs token=${this.token}`
+                    }
+                });
+
+                if (!releaseResponse.ok) {
+                    console.error(`[Discogs] Release API error: ${releaseResponse.status}`);
+                    throw new Error(`Discogs API error: ${releaseResponse.status}`);
+                }
+
+                const releaseData = await releaseResponse.json();
+                console.log(`[Discogs] Successfully retrieved track data for: ${artist} - ${title}`);
+                
+                if (!releaseData.tracklist || releaseData.tracklist.length === 0) {
+                    return null;
+                }
+                
+                // Transform the tracklist data
+                const tracks = releaseData.tracklist.map(track => ({
+                    position: track.position,
+                    title: track.title,
+                    duration: track.duration
+                }));
+
+                return { tracks };
             }
-
-            const releaseData = await releaseResponse.json();
-            console.log(`[Discogs] Successfully retrieved track data for: ${artist} - ${title}`);
-            
-            if (!releaseData.tracklist || releaseData.tracklist.length === 0) {
-                return null;
-            }
-            
-            // Transform the tracklist data
-            const tracks = releaseData.tracklist.map(track => ({
-                position: track.position,
-                title: track.title,
-                duration: track.duration
-            }));
-
-            return { tracks };
         } catch (error) {
             console.error('[Discogs] Error fetching tracks:', error);
             return null;
