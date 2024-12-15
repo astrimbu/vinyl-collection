@@ -5,15 +5,11 @@ async function updateTracks() {
     // Get all records without track information
     const records = db.prepare('SELECT id, artist_name, title FROM vinyls WHERE tracks IS NULL OR tracks = "[]"').all();
     
-    console.log(`Found ${records.length} records without track information`);
-    
     let success = 0;
     let failed = 0;
     
     for (const record of records) {
         try {
-            console.log(`Processing ${record.artist_name} - ${record.title}...`);
-            
             const trackInfo = await discogsClient.getTrackList(record.artist_name, record.title);
             
             // Only store track data if we have valid tracks

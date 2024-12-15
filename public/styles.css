@@ -1343,3 +1343,114 @@ th:last-child {
     opacity: 1;
     visibility: visible;
 }
+
+.release-selector {
+    padding: 20px;
+}
+
+.release-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.release-option {
+    display: flex;
+    gap: 15px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    align-items: center;
+}
+
+.release-option img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.release-details {
+    flex: 1;
+}
+
+.release-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.release-meta {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.select-release-btn {
+    padding: 8px 16px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.select-release-btn:hover {
+    background: #1976D2;
+}
+
+.see-more-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 15px;
+    background: var(--bg-form);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.see-more-btn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.see-more-btn span {
+    font-size: 0.9em;
+}
+
+.release-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.select-release-btn,
+.artwork-only-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.select-release-btn {
+    background: #2196F3;
+    color: white;
+}
+
+.select-release-btn:hover {
+    background: #1976D2;
+}
+
+.artwork-only-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+.artwork-only-btn:hover {
+    background: #388E3C;
+}

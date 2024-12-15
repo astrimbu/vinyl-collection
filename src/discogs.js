@@ -311,6 +311,75 @@ class DiscogsClient {
             return null;
         }
     }
+
+    async searchAlternateReleases(artist, title) {
+        try {
+            const cleanArtist = artist.replace(/[&+]/g, '').trim();
+            const cleanTitle = title.replace(/,.*$/, '').replace(/[&+]/g, '').trim();
+
+            const url = new URL(`${this.baseUrl}/database/search`);
+            url.searchParams.append('type', 'release');
+            url.searchParams.append('artist', cleanArtist);
+            url.searchParams.append('release_title', cleanTitle);
+            url.searchParams.append('format', 'vinyl');
+            url.searchParams.append('per_page', '100');
+
+            const response = await fetch(url.toString(), {
+                headers: {
+                    'User-Agent': this.userAgent,
+                    'Authorization': `Discogs token=${this.token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Discogs API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.results.map(result => ({
+                id: result.id,
+                title: result.title,
+                year: result.year,
+                country: result.country,
+                format: result.format?.join(', ') || '',
+                label: result.label?.[0] || 'Unknown',
+                thumb: result.thumb,
+                resource_url: result.resource_url
+            }));
+        } catch (error) {
+            console.error('Error searching alternate releases:', error);
+            return [];
+        }
+    }
+
+    async getReleaseById(releaseId) {
+        try {
+            const url = `${this.baseUrl}/releases/${releaseId}`;
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': this.userAgent,
+                    'Authorization': `Discogs token=${this.token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Discogs API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return {
+                cover: data.images?.[0]?.uri || null,
+                tracks: data.tracklist.map(track => ({
+                    position: track.position,
+                    title: track.title,
+                    duration: track.duration
+                }))
+            };
+        } catch (error) {
+            console.error('Error fetching release:', error);
+            return null;
+        }
+    }
 }
 
 module.exports = new DiscogsClient();

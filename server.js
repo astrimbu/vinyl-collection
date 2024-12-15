@@ -1,8 +1,4 @@
 require('dotenv').config();
-console.log('Server ENV check:', {
-    hasToken: !!process.env.DISCOGS_TOKEN,
-    tokenValue: process.env.DISCOGS_TOKEN
-});
 
 const express = require('express');
 const cors = require('cors');

@@ -438,4 +438,71 @@ router.get('/api/public/vinyl/:id/tracks', (req, res) => {
     }
 });
 
+router.get('/api/vinyl/:id/alternate-releases', authenticateToken, async (req, res) => {
+    try {
+        const vinyl = db.prepare('SELECT * FROM vinyls WHERE id = ?').get(req.params.id);
+        if (!vinyl) {
+            return res.status(404).json({ error: 'Vinyl not found' });
+        }
+
+        // Use the existing DiscogsClient
+        const releases = await discogsClient.searchAlternateReleases(vinyl.artist_name, vinyl.title);
+        
+        if (!releases) {
+            return res.json([]);
+        }
+
+        res.json(releases);
+    } catch (error) {
+        console.error('Error fetching alternate releases:', error);
+        res.status(500).json({ error: 'Failed to fetch alternate releases' });
+    }
+});
+
+router.post('/api/vinyl/:id/update-release', authenticateToken, async (req, res) => {
+    try {
+        const { releaseId, artworkOnly } = req.body;
+        const vinyl = db.prepare('SELECT * FROM vinyls WHERE id = ?').get(req.params.id);
+        
+        if (!vinyl) {
+            return res.status(404).json({ error: 'Vinyl not found' });
+        }
+
+        const releaseData = await discogsClient.getReleaseById(releaseId);
+        
+        if (!releaseData) {
+            return res.status(404).json({ error: 'Release not found' });
+        }
+
+        if (artworkOnly) {
+            // Update only the artwork
+            db.prepare('UPDATE vinyls SET artwork_url = ? WHERE id = ?')
+                .run(releaseData.cover, req.params.id);
+        } else {
+            // Update all release data
+            db.prepare(`
+                UPDATE vinyls 
+                SET artwork_url = ?, 
+                    tracks = ?,
+                    discogs_uri = ?
+                WHERE id = ?
+            `).run(
+                releaseData.cover,
+                JSON.stringify(releaseData.tracks),
+                `release/${releaseId}`,
+                req.params.id
+            );
+        }
+
+        res.json({ 
+            message: artworkOnly ? 'Artwork updated successfully' : 'Release updated successfully',
+            artwork_url: releaseData.cover,
+            tracks: releaseData.tracks
+        });
+    } catch (error) {
+        console.error('Error updating release:', error);
+        res.status(500).json({ error: 'Failed to update release' });
+    }
+});
+
 module.exports = router;

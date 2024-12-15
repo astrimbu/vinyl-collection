@@ -184,6 +184,15 @@ export class ModalManager {
             ${vinyl.dupe ? '<div><span class="dupe-badge">Duplicate</span></div>' : ''}
         `;
 
+        if (this.app.auth.isAuthenticated()) {
+            const changeReleaseBtn = document.createElement('button');
+            changeReleaseBtn.className = 'change-release-btn';
+            changeReleaseBtn.textContent = 'Change Release';
+            changeReleaseBtn.addEventListener('click', () => this.showReleaseSelector(vinyl));
+            
+            metadata.appendChild(changeReleaseBtn);
+        }
+
         this.loadTracks(vinyl, tracksContainer);
         modal.classList.remove('hidden');
 
@@ -258,5 +267,148 @@ Title: ${this.app.vinyl.escapeHtml(vinyl.title)}</pre>
         
         // Also close the album modal
         document.getElementById('albumModal').classList.add('hidden');
+    }
+
+    async showReleaseSelector(vinyl) {
+        const container = document.querySelector('.tracks-container');
+        container.innerHTML = `
+            <div class="loading-tracks">
+                <div class="loading-spinner"></div>
+                <p>Loading alternate releases...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/api/vinyl/${vinyl.id}/alternate-releases`, {
+                headers: this.app.auth.getAuthHeaders()
+            });
+            
+            if (!response.ok) throw new Error('Failed to fetch releases');
+            
+            const releases = await response.json();
+
+            let displayCount = 5;
+            
+            const renderReleases = (count) => {
+                const visibleReleases = releases.slice(0, count);
+                return `
+                    <div class="release-selector">
+                        <h4>Select Correct Release:</h4>
+                        <div class="release-list">
+                            ${visibleReleases.map(release => `
+                                <div class="release-option" data-release-id="${release.id}">
+                                    <img src="${release.thumb}" alt="Release thumbnail">
+                                    <div class="release-details">
+                                        <div class="release-title">${release.title}</div>
+                                        <div class="release-meta">
+                                            ${release.year} · ${release.country} · ${release.format}
+                                            <br>Label: ${release.label}
+                                        </div>
+                                    </div>
+                                    <div class="release-buttons">
+                                        <button class="select-release-btn">Select Release</button>
+                                        <button class="artwork-only-btn">Use Artwork Only</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${releases.length > count ? `
+                            <button class="see-more-btn">
+                                <span>Show More Results (${releases.length - count} remaining)</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            };
+
+            const updateContent = (count) => {
+                container.innerHTML = renderReleases(count);
+                
+                // Add click handlers for full release selection
+                container.querySelectorAll('.select-release-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const releaseId = e.target.closest('.release-option').dataset.releaseId;
+                        await this.updateRelease(vinyl, releaseId, false);
+                    });
+                });
+
+                // Add click handlers for artwork-only selection
+                container.querySelectorAll('.artwork-only-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const releaseId = e.target.closest('.release-option').dataset.releaseId;
+                        await this.updateRelease(vinyl, releaseId, true);
+                    });
+                });
+
+                // Add click handler for "See More" button
+                const seeMoreBtn = container.querySelector('.see-more-btn');
+                if (seeMoreBtn) {
+                    seeMoreBtn.addEventListener('click', () => {
+                        displayCount += 5;
+                        updateContent(displayCount);
+                    });
+                }
+            };
+
+            updateContent(displayCount);
+
+        } catch (error) {
+            console.error('Error loading releases:', error);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <p>Failed to load alternate releases</p>
+                <button class="try-again-btn">Try Again</button>
+            `;
+            
+            const tryAgainBtn = errorDiv.querySelector('.try-again-btn');
+            tryAgainBtn.addEventListener('click', () => this.showReleaseSelector(vinyl));
+            
+            container.innerHTML = '';
+            container.appendChild(errorDiv);
+        }
+    }
+
+    async updateRelease(vinyl, releaseId, artworkOnly = false) {
+        const container = document.querySelector('.tracks-container');
+        container.innerHTML = `
+            <div class="loading-tracks">
+                <div class="loading-spinner"></div>
+                <p>Updating release information...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/api/vinyl/${vinyl.id}/update-release`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.app.auth.getAuthHeaders()
+                },
+                body: JSON.stringify({ releaseId, artworkOnly })
+            });
+
+            if (!response.ok) throw new Error('Failed to update release');
+            
+            const data = await response.json();
+            
+            // Update the vinyl object with new data
+            vinyl.artwork_url = data.artwork_url;
+            if (!artworkOnly) {
+                vinyl.tracks = JSON.stringify(data.tracks);
+            }
+            
+            // Refresh the modal display
+            this.showAlbumModal(vinyl);
+            
+            // Refresh the main collection display
+            await this.app.vinyl.loadVinyls();
+            
+            this.app.ui.showSuccess(artworkOnly ? 'Artwork updated successfully' : 'Release updated successfully');
+        } catch (error) {
+            console.error('Error updating release:', error);
+            this.app.ui.showError('Failed to update release');
+            this.loadTracks(vinyl, container);
+        }
     }
 } 
