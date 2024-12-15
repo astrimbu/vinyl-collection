@@ -60,7 +60,6 @@ export class VinylManager {
                 </td>
                 <td>${this.escapeHtml(vinyl.title)}</td>
                 <td class="notes-cell">${this.escapeHtml(vinyl.notes || '')}</td>
-                <td>${vinyl.dupe ? '<span class="dupe-badge">Duplicate</span>' : ''}</td>
             `;
             
             row.addEventListener('click', () => {
@@ -98,7 +97,6 @@ export class VinylManager {
                         </div>
                     ` : ''}
                 </div>
-                ${vinyl.dupe ? '<div class="dupe-badge">Duplicate</div>' : ''}
             `;
             
             card.addEventListener('click', (e) => {
