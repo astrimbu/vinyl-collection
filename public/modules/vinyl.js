@@ -78,11 +78,18 @@ export class VinylManager {
         vinyls.forEach(vinyl => {
             const card = document.createElement('div');
             card.className = 'vinyl-card';
+            
+            const hasArtwork = vinyl.artwork_url && !vinyl.artwork_url.includes('spacer.gif');
+            
             card.innerHTML = `
                 <div class="artwork">
-                    ${(vinyl.artwork_url && !vinyl.artwork_url.includes('spacer.gif')) ? 
-                        `<img src="${this.escapeHtml(vinyl.artwork_url)}" alt="Album artwork">` : 
-                        '<div class="no-artwork">No Image</div>'
+                    ${hasArtwork ? 
+                        `<img src="${this.escapeHtml(vinyl.artwork_url)}" alt="Album artwork">
+                         <div class="hover-info">
+                             <div class="artist">${this.escapeHtml(vinyl.artist_name)}</div>
+                             <div class="title">${this.escapeHtml(vinyl.title)}</div>
+                         </div>` : 
+                        `<div class="no-artwork">${this.escapeHtml(vinyl.artist_name)} - ${this.escapeHtml(vinyl.title)}</div>`
                     }
                     ${isAdmin ? `
                         <div class="admin-actions">
@@ -91,13 +98,7 @@ export class VinylManager {
                         </div>
                     ` : ''}
                 </div>
-                <div class="info">
-                    <div class="artist">${this.escapeHtml(vinyl.artist_name)}</div>
-                    <div class="title">${this.escapeHtml(vinyl.title)}</div>
-                    <div class="metadata">
-                        ${vinyl.dupe ? '<span class="dupe-badge">Duplicate</span>' : ''}
-                    </div>
-                </div>
+                ${vinyl.dupe ? '<div class="dupe-badge">Duplicate</div>' : ''}
             `;
             
             card.addEventListener('click', (e) => {

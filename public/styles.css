@@ -603,6 +603,7 @@ input[type="email"] {
     font-size: 0.8em;
     color: #999;
     vertical-align: middle;
+    text-align: center;
 }
 
 td {
@@ -879,7 +880,8 @@ td {
 }
 
 .vinyl-card {
-    background: var(--bg-card);
+    position: relative;
+    aspect-ratio: 1;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -893,12 +895,8 @@ td {
 
 .vinyl-card .artwork {
     width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    background: #eee;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 100%;
+    position: relative;
 }
 
 .vinyl-card .artwork img {
@@ -907,38 +905,72 @@ td {
     object-fit: cover;
 }
 
-.vinyl-card .artwork .no-artwork {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #999;
-    font-size: 0.9em;
+.vinyl-card .hover-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    color: white;
 }
 
-.vinyl-card .info {
-    padding: 12px;
+.vinyl-card:hover .hover-info {
+    transform: translateY(0);
 }
 
 .vinyl-card .artist {
     font-weight: 500;
     margin-bottom: 4px;
+    font-size: 0.95em;
 }
 
 .vinyl-card .title {
-    color: var(--text-secondary);
+    font-size: 0.85em;
+    opacity: 0.9;
+}
+
+.vinyl-card .no-artwork {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    background: #eee;
+    color: #666;
     font-size: 0.9em;
-    margin-bottom: 8px;
 }
 
-.vinyl-card .metadata {
+.vinyl-card .dupe-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background-color: #ff9800;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
     font-size: 0.8em;
-    color: var(--text-secondary);
+    z-index: 1;
 }
 
-.hidden {
-    display: none !important;
+/* Adjust admin actions for grid view */
+.vinyl-card .admin-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 1;
+}
+
+.vinyl-card:hover .admin-actions {
+    opacity: 1;
 }
 
 /* Album Modal Styles */
