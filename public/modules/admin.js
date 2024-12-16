@@ -16,21 +16,53 @@ export class AdminManager {
 
     async init() {
         if (!this.app.auth.isAuthenticated()) return;
-
-        // Show admin section
-        document.getElementById('adminAddSection').classList.remove('hidden');
         
         // Initialize event listeners
-        this.vinylForm.addEventListener('submit', (e) => this.handleAddVinyl(e));
+        document.getElementById('addVinylBtn').addEventListener('click', () => this.showAddVinylModal());
         this.importBtn.addEventListener('click', () => this.importFile.click());
         this.importFile.addEventListener('change', (e) => this.handleImport(e));
         this.updateArtworkBtn.addEventListener('click', (e) => this.updateMissingArtwork(e));
         this.closeProgress.addEventListener('click', () => this.hideProgress());
     }
 
-    async handleAddVinyl(e) {
-        e.preventDefault();
-        
+    showAddVinylModal() {
+        const modalContent = `
+            <form id="vinylForm">
+                <div class="form-group">
+                    <label for="artist_name">Artist Name:</label>
+                    <input type="text" id="artist_name" required>
+                </div>
+                <div class="form-group">
+                    <label for="title">Title:</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="identifier">Identifier:</label>
+                    <input type="text" id="identifier">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Weight (g):</label>
+                    <input type="number" id="weight">
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes"></textarea>
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="dupe">
+                        Duplicate Copy
+                    </label>
+                </div>
+            </form>
+        `;
+
+        this.app.modal.showFormModal('Add New Vinyl', modalContent, async (closeModal) => {
+            await this.handleAddVinyl(closeModal);
+        });
+    }
+
+    async handleAddVinyl(closeModal) {
         try {
             const formData = {
                 artist_name: document.getElementById('artist_name').value,
@@ -54,8 +86,8 @@ export class AdminManager {
                 throw new Error('Failed to add vinyl record');
             }
 
-            this.vinylForm.reset();
             await this.app.vinyl.loadVinyls();
+            closeModal();
             this.app.ui.showSuccess('Record added successfully');
         } catch (error) {
             console.error('Error adding vinyl:', error);
