@@ -24,6 +24,50 @@ router.get('/api/vinyl', authenticateToken, (req, res) => {
     }
 });
 
+// Export route - moved up before any /:id routes
+router.get('/api/vinyl/export', authenticateToken, (req, res) => {
+    try {
+        const vinyls = db.prepare(
+            'SELECT artist_name, title, identifier, notes, weight, dupe FROM vinyls WHERE user_id = ? ORDER BY artist_name, title'
+        ).all(req.user.id);
+
+        // Convert boolean dupe to 'X' or ''
+        const formattedVinyls = vinyls.map(vinyl => ({
+            'Artist Name': vinyl.artist_name,
+            'Title': vinyl.title,
+            'Identifiers (SKU, Cat #, Barcode, Runout Etchings)': vinyl.identifier || '',
+            'Notes': vinyl.notes || '',
+            'Weight': vinyl.weight || '',
+            'Dupe': vinyl.dupe ? 'X' : ''
+        }));
+
+        // Generate CSV header
+        const headers = ['Artist Name', 'Title', 'Identifiers (SKU, Cat #, Barcode, Runout Etchings)', 'Notes', 'Weight', 'Dupe'];
+        
+        // Generate CSV content
+        let csv = headers.join(',') + '\n';
+        
+        formattedVinyls.forEach(vinyl => {
+            const row = headers.map(header => {
+                const value = vinyl[header].toString();
+                // Escape quotes and wrap fields in quotes if they contain commas or quotes
+                if (value.includes('"') || value.includes(',')) {
+                    return `"${value.replace(/"/g, '""')}"`;
+                }
+                return value;
+            });
+            csv += row.join(',') + '\n';
+        });
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=vinyl-collection-${new Date().toISOString().split('T')[0]}.csv`);
+        res.send(csv);
+    } catch (error) {
+        console.error('Detailed export error:', error);
+        res.status(500).json({ error: 'Failed to export vinyl records', details: error.message });
+    }
+});
+
 // GET single vinyl record
 router.get('/api/vinyl/:id', authenticateToken, checkResourceOwnership, (req, res) => {
     try {

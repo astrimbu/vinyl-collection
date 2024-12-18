@@ -19,6 +19,7 @@ export class AdminManager {
         
         // Initialize event listeners
         document.getElementById('addVinylBtn').addEventListener('click', () => this.showAddVinylModal());
+        document.getElementById('exportBtn').addEventListener('click', () => this.exportCollection());
         this.importBtn.addEventListener('click', () => this.importFile.click());
         this.importFile.addEventListener('change', (e) => this.handleImport(e));
         this.updateArtworkBtn.addEventListener('click', (e) => this.updateMissingArtwork(e));
@@ -342,5 +343,36 @@ export class AdminManager {
 
     hideProgress() {
         this.updateProgress.classList.remove('visible');
+    }
+
+    async exportCollection() {
+        try {
+            const response = await fetch('/api/vinyl/export', {
+                headers: this.app.auth.getAuthHeaders()
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Export failed');
+            }
+
+            const csvContent = await response.text();
+            
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vinyl-collection-${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            this.app.ui.showSuccess('Collection exported successfully');
+        } catch (error) {
+            console.error('Detailed export error:', error);
+            this.app.ui.showError(`Failed to export collection: ${error.message}`);
+        }
     }
 }
