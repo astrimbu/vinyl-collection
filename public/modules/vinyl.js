@@ -90,19 +90,11 @@ export class VinylManager {
                          </div>` : 
                         `<div class="no-artwork">${this.escapeHtml(vinyl.artist_name)} - ${this.escapeHtml(vinyl.title)}</div>`
                     }
-                    ${isAdmin ? `
-                        <div class="admin-actions">
-                            <button onclick="app.admin.editVinyl(${vinyl.id})" class="edit-btn">Edit</button>
-                            <button onclick="app.admin.deleteVinyl(${vinyl.id})" class="delete-btn">Delete</button>
-                        </div>
-                    ` : ''}
                 </div>
             `;
             
-            card.addEventListener('click', (e) => {
-                if (!e.target.closest('.admin-actions')) {
-                    this.app.modal.showAlbumModal(vinyl);
-                }
+            card.addEventListener('click', () => {
+                this.app.modal.showAlbumModal(vinyl);
             });
             
             grid.appendChild(card);

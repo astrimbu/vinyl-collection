@@ -184,15 +184,6 @@ export class ModalManager {
             ${vinyl.dupe ? '<div><span class="dupe-badge">Duplicate</span></div>' : ''}
         `;
 
-        if (this.app.auth.isAuthenticated()) {
-            const changeReleaseBtn = document.createElement('button');
-            changeReleaseBtn.className = 'change-release-btn';
-            changeReleaseBtn.textContent = 'Change Release';
-            changeReleaseBtn.addEventListener('click', () => this.showReleaseSelector(vinyl));
-            
-            metadata.appendChild(changeReleaseBtn);
-        }
-
         this.loadTracks(vinyl, tracksContainer);
         modal.classList.remove('hidden');
 
@@ -207,10 +198,17 @@ export class ModalManager {
             const actionsHtml = `
                 <div class="admin-actions">
                     <button onclick="app.admin.editVinyl(${vinyl.id})" class="edit-btn">Edit</button>
+                    <button class="change-release-btn">Change Release</button>
                     <button onclick="app.admin.deleteVinyl(${vinyl.id})" class="delete-btn">Delete</button>
                 </div>
             `;
             modal.querySelector('.album-details').insertAdjacentHTML('beforeend', actionsHtml);
+            
+            // Add event listener for change release button
+            const changeReleaseBtn = modal.querySelector('.change-release-btn');
+            changeReleaseBtn.addEventListener('click', () => {
+                this.showReleaseSelector(vinyl);
+            });
         }
     }
 

@@ -146,29 +146,30 @@ nav {
     align-items: center;
 }
 
-.edit-btn, .delete-btn {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    cursor: pointer;
+/* Keep only our new unified admin actions styles */
+.admin-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 16px;
+}
+
+.admin-actions button,
+.change-release-btn {
+    background: none;
     border: none;
-    color: white;
+    padding: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    font-family: 'Inter', sans-serif;
 }
 
-.edit-btn {
-    background: #2196F3;
-}
-
-.edit-btn:hover {
-    background: #1976D2;
-}
-
-.delete-btn {
-    background: #f44336;
-}
-
-.delete-btn:hover {
-    background: #d32f2f;
+.admin-actions button:hover,
+.change-release-btn:hover {
+    color: var(--text-primary);
 }
 
 * {
@@ -178,7 +179,7 @@ nav {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     line-height: 1.6;
     padding: 20px;
     max-width: 1200px;
@@ -205,6 +206,27 @@ header {
     gap: 16px;
     margin-bottom: 24px;
     align-items: center;
+    background: var(--bg-card);
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.search-section input {
+    flex: 1;
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.search-section input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .search-section .controls {
@@ -335,7 +357,7 @@ tr:hover {
     resize: vertical;
 }
 
-button {
+.submit-btn {
     padding: 8px 16px;
     background-color: #4CAF50;
     color: white;
@@ -344,7 +366,7 @@ button {
     cursor: pointer;
 }
 
-button:hover {
+submit-btn:hover {
     background-color: #45a049;
 }
 
@@ -354,19 +376,10 @@ button:hover {
     font-size: 14px;
 }
 
-.delete-btn {
-    background-color: #f44336;
-}
-
-.delete-btn:hover {
-    background-color: #da190b;
-}
-
 #loginForm {
     max-width: 400px;
     margin: 40px auto;
     padding: 20px;
-    border: 1px solid #ddd;
     border-radius: 4px;
 }
 
@@ -1522,4 +1535,52 @@ th:last-child {
 
 .artwork-only-btn:hover {
     background: #388E3C;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+}
+
+/* Top navigation action buttons */
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.action-btn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+/* Modal admin actions */
+.modal .admin-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+}
+
+.modal .admin-actions button {
+    background: none;
+    border: 1px solid var(--border-color);
+    padding: 6px 12px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.modal .admin-actions button:hover {
+    background: var(--bg-form);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
 }
