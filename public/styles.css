@@ -1584,3 +1584,26 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
     border-color: var(--text-secondary);
 }
+
+/* Footer styles */
+footer {
+    margin-top: 40px;
+    padding: 20px 0;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.1em;
+}
+
+footer a {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.2s ease;
+}
+
+footer a:hover {
+    color: var(--text-primary);
+}
+
+footer code {
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
