@@ -70,7 +70,7 @@ Start production server:
     npm start
 
 ## Environment Setup
-Create a `.env` file in the root directory with:
+Rename `.envexample` to `.env` and add your secrets:
 
     DISCOGS_TOKEN=your_discogs_token
     JWT_SECRET=your_jwt_secret
