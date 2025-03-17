@@ -6,7 +6,7 @@ const path = require('path');
 const routes = require('./src/routes');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4567;
 
 // Middleware
 app.use(cors());
