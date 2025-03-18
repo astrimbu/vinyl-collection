@@ -292,17 +292,55 @@ router.post('/api/vinyl/import', authenticateToken, async (req, res) => {
                     let count = 0;
                     for (const vinyl of vinyls) {
                         try {
+                            // Send progress message
+                            const searchMessage = {
+                                type: 'info',
+                                message: `Searching Discogs for: "${vinyl.artist_name}" - "${vinyl.title}"`
+                            };
+                            res.write(JSON.stringify(searchMessage) + '\n');
+
                             // Fetch artwork URL from Discogs
                             const artwork = await discogsClient.searchRelease(vinyl.artist_name, vinyl.title);
-                            vinyl.artwork_url = artwork ? artwork.cover : null;
-                            vinyl.discogs_uri = artwork ? `release/${artwork.releaseId}` : null;
+                            
+                            if (artwork) {
+                                vinyl.artwork_url = artwork.cover;
+                                vinyl.discogs_uri = `release/${artwork.releaseId}`;
+                                
+                                // Send success message
+                                const successMessage = {
+                                    type: 'success',
+                                    message: `✓ Found valid artwork for: ${vinyl.artist_name} - ${vinyl.title}`
+                                };
+                                res.write(JSON.stringify(successMessage) + '\n');
+                            } else {
+                                vinyl.artwork_url = null;
+                                vinyl.discogs_uri = null;
+                                
+                                // Send error message
+                                const errorMessage = {
+                                    type: 'error',
+                                    message: `✗ No artwork found for: ${vinyl.artist_name} - ${vinyl.title}`
+                                };
+                                res.write(JSON.stringify(errorMessage) + '\n');
+                            }
                             
                             stmt.run(req.user.id, vinyl);
                             count++;
                             
-                            console.log(`Processed ${count}/${vinyls.length}: ${vinyl.artist_name} - ${vinyl.title}`);
+                            // Send progress message
+                            const progressUpdateMessage = {
+                                type: 'info',
+                                message: `Processed ${count}/${vinyls.length}: ${vinyl.artist_name} - ${vinyl.title}`
+                            };
+                            res.write(JSON.stringify(progressUpdateMessage) + '\n');
                         } catch (err) {
                             console.error('Error importing record:', err);
+                            // Send error message
+                            const errorMessage = {
+                                type: 'error',
+                                message: `✗ Error processing: ${vinyl.artist_name} - ${vinyl.title}: ${err.message}`
+                            };
+                            res.write(JSON.stringify(errorMessage) + '\n');
                         }
                     }
                     return count;
@@ -310,18 +348,31 @@ router.post('/api/vinyl/import', authenticateToken, async (req, res) => {
 
                 const importedCount = await insertMany(transformedRecords);
 
-                res.json({ 
-                    message: 'Import successful', 
-                    count: importedCount 
-                });
+                // Send completion message
+                const completionMessage = {
+                    type: 'success',
+                    message: `Import complete! Successfully imported ${importedCount} records.`
+                };
+                res.write(JSON.stringify(completionMessage) + '\n');
+                res.end();
             } catch (error) {
                 console.error('CSV parsing error:', error);
-                res.status(400).json({ error: 'Invalid CSV format' });
+                const errorMessage = {
+                    type: 'error',
+                    message: `Import failed: ${error.message}`
+                };
+                res.write(JSON.stringify(errorMessage) + '\n');
+                res.end();
             }
         });
     } catch (error) {
         console.error('Import error:', error);
-        res.status(500).json({ error: 'Import failed' });
+        const errorMessage = {
+            type: 'error',
+            message: `Import failed: ${error.message}`
+        };
+        res.write(JSON.stringify(errorMessage) + '\n');
+        res.end();
     }
 });
 

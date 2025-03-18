@@ -78,13 +78,19 @@
     <!-- Progress Overlay -->
     <div id="updateProgress" class="progress-container">
         <div class="progress-header">
-            <h3>Updating Artwork...</h3>
+            <h3>Importing...</h3>
             <button id="closeProgress" class="close-button">&times;</button>
+        </div>
+        <div class="progress-message">
+            Processing CSV file and fetching info from Discogs...
         </div>
         <div class="progress-bar">
             <div class="progress-fill"></div>
         </div>
-        <div class="progress-text">Processing: <span id="progressCount">0</span> / <span id="totalCount">0</span></div>
+        
+        <div class="terminal-output">
+            <pre id="importLog"></pre>
+        </div>
         
         <div id="progressSummary" class="progress-summary hidden">
             <h4>Update Complete</h4>

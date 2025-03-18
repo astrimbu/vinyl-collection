@@ -192,16 +192,23 @@ export class AdminManager {
         const file = event.target.files[0];
         if (!file) return;
 
-        this.app.ui.showLoading('Importing records (this can take 1 minute per 60 records)...');
-        const reader = new FileReader();
+        const fileReader = new FileReader();
         
         try {
             // Convert FileReader to Promise
             const csvContent = await new Promise((resolve, reject) => {
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = () => reject(new Error('Failed to read file'));
-                reader.readAsText(file);
+                fileReader.onload = e => resolve(e.target.result);
+                fileReader.onerror = () => reject(new Error('Failed to read file'));
+                fileReader.readAsText(file);
             });
+
+            // Show progress container
+            const progressContainer = document.getElementById('updateProgress');
+            progressContainer.classList.add('visible');
+            
+            // Clear previous log
+            const importLog = document.getElementById('importLog');
+            importLog.innerHTML = '';
 
             const response = await fetch('/api/vinyl/import', {
                 method: 'POST',
@@ -216,15 +223,56 @@ export class AdminManager {
                 throw new Error('Import failed');
             }
 
-            const result = await response.json();
+            // Handle streaming response
+            const streamReader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let processedCount = 0;
+            let totalCount = 0;
+            
+            while (true) {
+                const { done, value } = await streamReader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const messages = chunk.split('\n').filter(msg => msg.trim());
+                
+                for (const message of messages) {
+                    try {
+                        const data = JSON.parse(message);
+                        const logEntry = document.createElement('div');
+                        logEntry.className = data.type;
+                        logEntry.textContent = data.message;
+                        importLog.appendChild(logEntry);
+                        
+                        // Update progress based on message type
+                        if (data.type === 'info' && data.message.startsWith('Processed')) {
+                            const match = data.message.match(/Processed (\d+)\/(\d+)/);
+                            if (match) {
+                                processedCount = parseInt(match[1]);
+                                totalCount = parseInt(match[2]);
+                                const progressFill = progressContainer.querySelector('.progress-fill');
+                                progressFill.style.width = `${(processedCount / totalCount) * 100}%`;
+                            }
+                        }
+                        
+                        // Ensure smooth scrolling to bottom
+                        logEntry.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    } catch (e) {
+                        console.error('Error parsing message:', e);
+                    }
+                }
+            }
+
+            // Set progress to 100% when complete
+            const progressFill = progressContainer.querySelector('.progress-fill');
+            progressFill.style.width = '100%';
+
+            this.app.ui.showSuccess('Import completed successfully');
             await this.app.vinyl.loadVinyls();
-            this.app.ui.hideLoading(); // Ensure loading is hidden before showing success
-            this.app.ui.showSuccess(`Successfully imported ${result.count} records`);
         } catch (error) {
             console.error('Import error:', error);
             this.app.ui.showError('Failed to import records');
         } finally {
-            this.app.ui.hideLoading(); // Ensure loading is always hidden
             event.target.value = ''; // Reset file input
         }
     }

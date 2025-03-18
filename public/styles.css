@@ -662,35 +662,36 @@ td {
 
 .progress-container {
     position: fixed;
-    top: 20px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
-    max-width: 800px;
+    transform: translate(-50%, -50%);
+    background: white;
     padding: 20px;
-    background: var(--bg-card);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 600px;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
     z-index: 1000;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    max-height: 80vh;
-    overflow-y: auto;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    overflow: hidden;
 }
 
 .progress-container.visible {
     opacity: 1;
-    visibility: visible;
+    pointer-events: auto;
 }
 
 .progress-bar {
     width: 100%;
-    height: 20px;
+    height: 4px;
     background: #eee;
-    border-radius: 10px;
+    border-radius: 2px;
     overflow: hidden;
-    margin: 10px 0;
+    margin: 12px 0;
 }
 
 .progress-fill {
@@ -1467,18 +1468,43 @@ th:last-child {
     color: var(--text-secondary);
 }
 
-.select-release-btn {
-    padding: 8px 16px;
-    background: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+.release-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.select-release-btn:hover {
-    background: #1976D2;
+.release-buttons .select-release-btn,
+.release-buttons .artwork-only-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    background: var(--bg-form);
+    color: var(--text-primary);
+}
+
+.release-buttons .select-release-btn:hover,
+.release-buttons .artwork-only-btn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.admin-actions .delete-btn {
+    padding: 8px 16px;
+    border: 1px solid #dc3545;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--bg-form);
+    color: #dc3545;
+}
+
+.admin-actions .delete-btn:hover {
+    background: #dc3545;
+    color: white;
 }
 
 .see-more-btn {
@@ -1501,40 +1527,6 @@ th:last-child {
 
 .see-more-btn span {
     font-size: 0.9em;
-}
-
-.release-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.select-release-btn,
-.artwork-only-btn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    white-space: nowrap;
-}
-
-.select-release-btn {
-    background: #2196F3;
-    color: white;
-}
-
-.select-release-btn:hover {
-    background: #1976D2;
-}
-
-.artwork-only-btn {
-    background: #4CAF50;
-    color: white;
-}
-
-.artwork-only-btn:hover {
-    background: #388E3C;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -1585,6 +1577,18 @@ h1, h2, h3, h4, h5, h6 {
     border-color: var(--text-secondary);
 }
 
+/* Override for delete button */
+.modal .admin-actions .delete-btn {
+    border: 1px solid #dc3545;
+    color: #dc3545;
+}
+
+.modal .admin-actions .delete-btn:hover {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
 /* Footer styles */
 footer {
     margin-top: 40px;
@@ -1606,4 +1610,45 @@ footer a:hover {
 
 footer code {
     font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+}
+
+.terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    margin: 16px -20px;
+    padding: 12px 20px;
+    background: #1e1e1e;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    min-height: 200px;
+}
+
+.terminal-output pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #d4d4d4;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.terminal-output pre .success {
+    color: #4CAF50;
+}
+
+.terminal-output pre .error {
+    color: #f44336;
+}
+
+.terminal-output pre .info {
+    color: #2196F3;
+}
+
+.terminal-output pre .warning {
+    color: #FFC107;
+}
+
+.progress-message {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+    margin: 8px 0;
 }
