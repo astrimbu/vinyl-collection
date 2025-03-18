@@ -10,13 +10,16 @@ if (!fs.existsSync(dbDir)) {
 
 const db = new Database(path.join(dbDir, 'vinyl.db'));
 
+// Enable foreign keys
+db.pragma('foreign_keys = ON');
+
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE NOT NULL,
         password_hash TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
     CREATE TABLE IF NOT EXISTS vinyls (
@@ -26,14 +29,23 @@ db.exec(`
         title TEXT NOT NULL,
         identifier TEXT,
         notes TEXT,
-        dupe BOOLEAN DEFAULT false,
         weight INTEGER,
+        dupe BOOLEAN DEFAULT 0,
         artwork_url TEXT,
         last_artwork_check TIMESTAMP,
         tracks TEXT,
         discogs_uri TEXT,
-        added_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS user_tokens (
+        user_id INTEGER PRIMARY KEY,
+        access_token TEXT,
+        refresh_token TEXT,
+        expiry_date INTEGER,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 `);
 

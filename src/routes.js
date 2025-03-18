@@ -5,6 +5,10 @@ const { generateToken, authenticateToken, checkResourceOwnership } = require('./
 const bcrypt = require('bcrypt');
 const csv = require('csv-parse/sync');
 const discogsClient = require('./discogs');
+const googleSheetsRoutes = require('./routes/google-sheets');
+
+// Mount Google Sheets routes
+router.use('/google-sheets', googleSheetsRoutes);
 
 global.currentProcessingRecord = null;
 global.updateResults = {

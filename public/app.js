@@ -5,6 +5,7 @@ import { UIManager } from './modules/ui.js';
 import { AdminManager } from './modules/admin.js';
 import { SearchManager } from './modules/search.js';
 import { ModalManager } from './modules/modal.js';
+import { GoogleSheetsManager } from './modules/google-sheets.js';
 
 // Main App class to coordinate all functionality
 class App {
@@ -16,6 +17,7 @@ class App {
         this.admin = new AdminManager(this);
         this.search = new SearchManager(this);
         this.modal = new ModalManager(this);
+        this.googleSheets = new GoogleSheetsManager(this);
         
         // Set initial auth state
         document.body.dataset.auth = this.auth.isAuthenticated() ? 'admin' : 'guest';
@@ -30,6 +32,7 @@ class App {
             // Check authentication and setup appropriate view
             if (this.auth.isAuthenticated()) {
                 await this.admin.init();
+                await this.googleSheets.init();
             }
             
             // Load initial vinyl data

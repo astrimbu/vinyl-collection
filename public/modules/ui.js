@@ -7,6 +7,10 @@ export class UIManager {
         this.vinylGrid = document.getElementById('vinylGrid');
         this.errorTimeout = null;
         this.notificationContainer = document.getElementById('notificationContainer');
+        this.googleSheetsBtn = document.getElementById('googleSheetsBtn');
+        this.syncSheetsBtn = document.getElementById('syncSheetsBtn');
+        this.settingsBtn = document.getElementById('settingsBtn');
+        this.settingsModal = document.getElementById('settingsModal');
     }
 
     initializeViewSwitcher() {
@@ -20,6 +24,28 @@ export class UIManager {
     }
 
     initializeEventListeners() {
+        // Initialize settings modal
+        if (this.settingsBtn && this.settingsModal) {
+            this.settingsBtn.addEventListener('click', () => {
+                this.settingsModal.classList.remove('hidden');
+            });
+
+            // Close button in settings modal
+            const closeBtn = this.settingsModal.querySelector('.close-button');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.settingsModal.classList.add('hidden');
+                });
+            }
+
+            // Close on click outside
+            this.settingsModal.addEventListener('click', (e) => {
+                if (e.target === this.settingsModal) {
+                    this.settingsModal.classList.add('hidden');
+                }
+            });
+        }
+
         // Initialize collapsible functionality
         const header = document.querySelector('.collapsible-header');
         const content = document.querySelector('.collapsible-content');
@@ -34,6 +60,70 @@ export class UIManager {
                 if (icon) {
                     icon.style.transform = header.classList.contains('collapsed') ? 
                         'rotate(-90deg)' : 'rotate(0deg)';
+                }
+            });
+        }
+
+        // Google Sheets integration
+        if (this.googleSheetsBtn) {
+            this.googleSheetsBtn.addEventListener('click', async () => {
+                if (this.app.googleSheets.isConnected) {
+                    this.app.googleSheets.disconnect();
+                } else {
+                    await this.app.googleSheets.connect();
+                }
+            });
+        }
+
+        if (this.syncSheetsBtn) {
+            this.syncSheetsBtn.addEventListener('click', async () => {
+                try {
+                    this.syncSheetsBtn.disabled = true;
+                    this.syncSheetsBtn.textContent = 'Syncing...';
+                    
+                    await this.app.googleSheets.syncCollection();
+                    
+                    this.showSuccess('Collection synced with Google Sheets');
+                } catch (error) {
+                    console.error('Error syncing collection:', error);
+                    
+                    // Check if the spreadsheet was deleted
+                    if (error.response && error.response.data && error.response.data.errorCode === 'SPREADSHEET_NOT_FOUND') {
+                        this.showError('This spreadsheet could not be found. It may have been deleted.');
+                        
+                        // Show a modal to explain and guide the user
+                        this.app.modal.showModal({
+                            title: 'Spreadsheet Not Found',
+                            content: `
+                                <p>The Google Sheet used for your vinyl collection could not be found. It may have been deleted.</p>
+                                <p>To fix this:</p>
+                                <ol>
+                                    <li>Click "Disconnect" from Google Sheets</li>
+                                    <li>Then "Connect" again to create a new spreadsheet</li>
+                                </ol>
+                            `,
+                            buttons: [
+                                {
+                                    text: 'Disconnect Now',
+                                    class: 'btn-primary',
+                                    action: () => {
+                                        this.app.googleSheets.disconnect();
+                                        this.app.modal.closeAllModals();
+                                    }
+                                },
+                                {
+                                    text: 'Close',
+                                    class: 'btn-secondary',
+                                    action: () => this.app.modal.closeAllModals()
+                                }
+                            ]
+                        });
+                    } else {
+                        this.showError('Failed to sync with Google Sheets: ' + (error.message || 'Unknown error'));
+                    }
+                } finally {
+                    this.syncSheetsBtn.disabled = false;
+                    this.syncSheetsBtn.textContent = 'Sync with Sheets';
                 }
             });
         }
@@ -189,5 +279,19 @@ export class UIManager {
             .join('');
             
         summary.classList.remove('hidden');
+    }
+
+    updateGoogleSheetsUI(isConnected) {
+        if (this.googleSheetsBtn) {
+            const text = this.googleSheetsBtn.querySelector('span:not(.material-icons)');
+            if (text) {
+                text.textContent = isConnected ? 'Disconnect Google Sheets' : 'Connect Google Sheets';
+            }
+            this.googleSheetsBtn.classList.toggle('connected', isConnected);
+        }
+        
+        if (this.syncSheetsBtn) {
+            this.syncSheetsBtn.classList.toggle('hidden', !isConnected);
+        }
     }
 } 

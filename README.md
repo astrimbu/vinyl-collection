@@ -1,6 +1,6 @@
 # Vinyl Collection Manager
 
-A full-featured web application for managing vinyl record collections with Discogs integration.
+A full-featured web application for managing vinyl record collections with Discogs and Google Sheets integration.
 
 ![preview](./preview.png)
 
@@ -16,6 +16,7 @@ A full-featured web application for managing vinyl record collections with Disco
 
 ### Data Management
 - CSV import functionality for bulk record additions
+- Google Sheets integration for cloud synchronization
 - Automatic artwork fetching from Discogs
 - Track information synchronization
 - Duplicate record tracking
@@ -25,7 +26,14 @@ A full-featured web application for managing vinyl record collections with Disco
 - Modal-based detailed record view
 - Real-time search filtering
 - Progress tracking for bulk operations
+- Settings menu for advanced features
 - Collapsible admin controls
+
+### Integration Features
+- Discogs API for artwork and track information
+- Google Sheets API for cloud backup and sync
+- CSV import/export functionality
+- Automatic data synchronization
 
 ### Security
 - Secure user authentication system
@@ -34,6 +42,7 @@ A full-featured web application for managing vinyl record collections with Disco
 - Bcrypt password hashing
 - Protected API routes
 - Secure session management
+- OAuth 2.0 for Google Sheets integration
 
 ## Tech Stack
 
@@ -51,6 +60,7 @@ A full-featured web application for managing vinyl record collections with Disco
 - JWT for authentication
 - Bcrypt for password hashing
 - Discogs API integration
+- Google Sheets API integration
 
 ### Database
 - SQLite with better-sqlite3
@@ -74,6 +84,18 @@ Rename `.envexample` to `.env` and add your secrets:
 
     DISCOGS_TOKEN=your_discogs_token
     JWT_SECRET=your_jwt_secret
+    GOOGLE_CLIENT_ID=your_google_client_id
+    GOOGLE_CLIENT_SECRET=your_google_client_secret
+    GOOGLE_REDIRECT_URI=http://localhost:4567/google-sheets/callback
+
+### Setting up Google Sheets Integration
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com)
+2. Create a new project or select an existing one
+3. Enable the Google Sheets API for your project
+4. Go to "Credentials" and create a new OAuth 2.0 Client ID
+5. Add `http://localhost:4567/google-sheets/callback` as an authorized redirect URI
+6. Copy the Client ID and Client Secret to your `.env` file
 
 ## Database
 The application automatically creates and manages an SQLite database in the `db` directory. The schema includes:

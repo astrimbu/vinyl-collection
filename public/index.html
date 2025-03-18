@@ -16,9 +16,9 @@
             <div class="auth-controls">
                 <button id="loginBtn" class="auth-btn guest-only">Login</button>
                 <div class="admin-controls admin-only">
-                    <button id="exportBtn" class="action-btn">Export</button>
-                    <button id="importBtn" class="action-btn">Import</button>
-                    <button id="updateArtworkBtn" class="action-btn">Update Artwork</button>
+                    <button id="settingsBtn" class="action-btn settings-button">
+                        <span class="material-icons">settings</span>
+                    </button>
                     <button id="logoutBtn" class="auth-btn">Logout</button>
                 </div>
                 <input type="file" id="importFile" accept=".csv" style="display: none;">
@@ -134,6 +134,49 @@
                     <h4>Track List</h4>
                     <div class="tracks-container">
                         <!-- Tracks will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-button">&times;</button>
+            </div>
+            <div class="modal-content">
+                <div class="settings-section">
+                    <h3>Data Management</h3>
+                    <div class="settings-buttons">
+                        <button id="exportBtn" class="settings-btn">
+                            <span class="material-icons">download</span>
+                            Export Collection
+                        </button>
+                        <button id="importBtn" class="settings-btn">
+                            <span class="material-icons">upload</span>
+                            Import from CSV
+                        </button>
+                        <button id="updateArtworkBtn" class="settings-btn">
+                            <span class="material-icons">image</span>
+                            Update Artwork
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Google Sheets Integration</h3>
+                    <div class="settings-buttons">
+                        <button id="googleSheetsBtn" class="settings-btn google-sheets-button">
+                            <span class="material-icons">table_chart</span>
+                            Connect Google Sheets
+                        </button>
+                        <button id="syncSheetsBtn" class="settings-btn sync-sheets-button hidden">
+                            <span class="material-icons">sync</span>
+                            Sync with Sheets
+                        </button>
                     </div>
                 </div>
             </div>

@@ -20,7 +20,7 @@
 }
 
 body[data-auth="admin"] .admin-only {
-    display: block !important;
+    display: flex !important;
 }
 
 body[data-auth="admin"] .guest-only {
@@ -69,12 +69,16 @@ nav {
 }
 
 /* Button Styles */
-.auth-btn {
+.auth-btn, .settings-button {
     padding: 8px 16px;
     border-radius: 6px;
     font-size: 0.9rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 #loginBtn {
@@ -1651,4 +1655,149 @@ footer code {
     color: var(--text-secondary);
     font-size: 0.9em;
     margin: 8px 0;
+}
+
+/* Google Sheets Integration Styles */
+.google-sheets-button {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.google-sheets-button:hover {
+    background-color: #357abd;
+}
+
+.google-sheets-button.connected {
+    background-color: #34a853;
+}
+
+.google-sheets-button.connected:hover {
+    background-color: #2d8e47;
+}
+
+.sync-sheets-button {
+    background-color: #fbbc05;
+    color: #202124;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s;
+}
+
+.sync-sheets-button:hover {
+    background-color: #f9ab00;
+}
+
+.sync-sheets-button.hidden {
+    display: none;
+}
+
+/* Settings Modal Styles */
+.settings-modal {
+    max-width: 600px;
+}
+
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section h3 {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.settings-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg-form);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.settings-btn:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.settings-btn .material-icons {
+    font-size: 20px;
+}
+
+/* Google Sheets button styles within settings */
+.settings-btn.google-sheets-button {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+}
+
+.settings-btn.google-sheets-button:hover {
+    background-color: #357abd;
+    color: white;
+}
+
+.settings-btn.google-sheets-button.connected {
+    background-color: #34a853;
+}
+
+.settings-btn.google-sheets-button.connected:hover {
+    background-color: #2d8e47;
+}
+
+.settings-btn.sync-sheets-button {
+    background-color: #fbbc05;
+    color: #202124;
+    border: none;
+}
+
+.settings-btn.sync-sheets-button:hover {
+    background-color: #f9ab00;
+}
+
+.settings-button {
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-button:hover {
+    background: var(--bg-main);
+    color: var(--text-primary);
+}
+
+.settings-button .material-icons {
+    font-size: 20px;
 }
